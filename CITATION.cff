@@ -33,6 +33,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22894812
     description: "Version 1.0.0"
+  - type: doi
+    value: 10.5281/zenodo.22957458
+    description: "Version 1.1.0"
 date-released: 2026-09-25
 keywords:
   - dissolution kinetics

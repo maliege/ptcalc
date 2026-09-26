@@ -84,7 +84,7 @@ Console.WriteLine($"{best.ModelName}: {best.CoefficientSummary}, AIC {best.Gof.A
 
 Yazılımı bir çalışmada kullanırsanız [CITATION.cff](CITATION.cff) dosyasındaki bilgilerle atıf yapın;
 GitHub sayfasındaki "Cite this repository" kutusu aynı dosyadan beslenir. Her yayın etiketi (`vX.Y.Z`)
-Zenodo'da arşivlenir ve sürüm DOI'si alır. Kalıcı üst DOI: 10.5281/zenodo.22894811 (tüm sürümler); v1.0.0 sürüm DOI'si 10.5281/zenodo.22894812.
+Zenodo'da arşivlenir ve sürüm DOI'si alır. Kalıcı üst DOI (her zaman en yeni sürüme çözümlür): 10.5281/zenodo.22894811. Sürüm DOI'leri: 1.1.0 → 10.5281/zenodo.22957458, 1.0.0 → 10.5281/zenodo.22894812.
 
 ## Lisans
 

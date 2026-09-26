@@ -120,8 +120,10 @@ released and archived on Zenodo on 22 September 2026.
 
 If you use PTCalc in a study, please cite it using [CITATION.cff](CITATION.cff) (GitHub's "Cite this
 repository" button reads the same file). Every release tag (`vX.Y.Z`) is archived on Zenodo.
-Concept DOI for all versions: [10.5281/zenodo.22894811](https://doi.org/10.5281/zenodo.22894811);
-version 1.0.0: [10.5281/zenodo.22894812](https://doi.org/10.5281/zenodo.22894812).
+Concept DOI for all versions (always resolves to the latest):
+[10.5281/zenodo.22894811](https://doi.org/10.5281/zenodo.22894811). Version DOIs:
+1.1.0 [10.5281/zenodo.22957458](https://doi.org/10.5281/zenodo.22957458),
+1.0.0 [10.5281/zenodo.22894812](https://doi.org/10.5281/zenodo.22894812).
 
 ## Licence
 

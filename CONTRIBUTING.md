@@ -30,9 +30,12 @@ Use `http://ptcalc.net.localhost:5277` to see the English default locally; plain
 | Guide | `PTCalc/Components/Guides/` | Method, prerequisites, how to read the output, limitations; sources with DOI. |
 | Tests | `PTCalc.Core.Tests/` | xUnit. Numerical work needs a reference-value test: `DdsolverReferenceTests` (DDSolver 1.0 fixtures) and `StatisticsReferenceTests` (SciPy/statsmodels via `tools/make_stats_reference.py`) show the pattern. |
 
-**Pull requests.** Branch from `main`, keep one topic per PR, add or update tests, run `dotnet test`, and fill the
-PR template. CI builds on Ubuntu and Windows with warnings as errors. Pushing to `main` deploys the site, so
-`main` is protected for maintainers only.
+**Branches and pull requests.** Day-to-day work happens on `dev` or on short topic branches cut from it. Pushing
+to any branch other than `main` runs CI only: the build on Ubuntu and Windows with warnings as errors, and the full
+test suite. `main` is what the live site runs, and every push to it redeploys ptcalc.net and ptcalc.tr; changes
+therefore reach `main` only by merging `dev` when they are ready to publish. To contribute, branch from `dev`, keep
+one topic per pull request, add or update tests, run `dotnet test`, fill the PR template, and target `dev`.
+Release tags and GitHub Releases, which Zenodo archives, are cut by the maintainer.
 
 **Wording.** Relationships with other software are described as comparisons ("compared with DDSolver"), never
 as validation or superiority. The site is not an official publication of the university.
@@ -212,6 +215,25 @@ Rehberler `Pages/AboutApps/<Araç>About.razor` (Türkçe gövde, sürüm notu) v
 (İngilizce) çiftidir; stil paylaşımlı `wwwroot/css/rehber.css`'tedir (Razor kapsamlı CSS alt bileşenlere
 ulaşmaz). Kaynaklar DOI ile verilir; başka yazılımlarla ilişki "ile karşılaştırıldı" diye anlatılır,
 üstünlük iddiası yazılmaz.
+
+---
+
+## Dallar ve yayın
+
+| Dal | Ne olur |
+|---|---|
+| `dev` (ve ondan açılan konu dalları) | Günlük çalışma. Push yalnız `test.yml`'i çalıştırır: Ubuntu + Windows derleme (uyarılar hata) ve testler. Site etkilenmez. |
+| `main` | Canlı sitenin kaynağı. Her push `deploy.yml` ile ptcalc.tr / ptcalc.net'i yeniden yayımlar (~2–3 dk kesinti). Yalnız `dev` birleştirilerek güncellenir. |
+| Etiket `vX.Y.Z` + GitHub Release | Yeni sürüm. Zenodo yalnız Release olayında arşivler; sıradan push'lar Zenodo'ya ulaşmaz. |
+
+Yayın adımı:
+
+```bash
+git checkout main && git merge --ff-only dev && git push origin main && git checkout dev
+```
+
+Belge değişiklikleri (`docs/**`, `*.md`, `paper/**`, CITATION.cff, .zenodo.json) ne testi ne yayını tetikler.
+`paper/` değişiklikleri JOSS hakemleri varsayılan dalı okuduğu için incelemeden önce `main`'e birleştirilir.
 
 ---
 

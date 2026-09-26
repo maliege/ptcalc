@@ -46,6 +46,17 @@ Ayrıntı: `CONTRIBUTING.md`.
 - Site üniversitenin resmi yayını değildir; PTCalc = "Pharmaceutical Technology Calculators" (Hakkında sayfasında yazar).
 - Eski marka adı (EgePharmTech) ve alan adları koda, metne ya da yönlendirmeye geri eklenmez.
 
+## Dallar
+
+- Günlük çalışma `dev` dalında (ya da ondan açılan kısa konu dallarında). `dev`'e push yayın tetiklemez; `test.yml`
+  Ubuntu ve Windows'ta derler ve testleri koşar. "push et" varsayılan olarak `dev`'e push demektir.
+- Siteyi güncellemek = `dev`'i `main`'e birleştirmek. `main`'e her push canlı siteyi yeniden yayımlar (~2–3 dk kesinti),
+  bu yüzden `main`'e doğrudan commit atılmaz; birleştirme yalnız kullanıcı yayın istediğinde yapılır.
+- Zenodo yalnız GitHub Release ile tetiklenir (webhook yalnız `release` olayını dinler); push'lar Zenodo'ya ulaşmaz.
+  Etiket ve Release yalnız kullanıcı yeni sürüm istediğinde atılır.
+- Varsayılan dal `main` kalır: JOSS hakemleri ve Zenodo onu okur. `paper/` değişiklikleri hakemlere gitmeden önce
+  `main`'e birleştirilmelidir (belge değişikliği olduğu için yayın tetiklemez).
+
 ## Yayın
 
 - `main`'e push → `.github/workflows/deploy.yml` (test → framework-dependent, `UseAppHost=false`, RID'siz yayın → lftp FTPS).

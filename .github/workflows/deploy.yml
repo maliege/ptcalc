@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
-    paths-ignore: [ 'docs/**', '**.md', 'CITATION.cff', '.zenodo.json' ]
+    paths-ignore: [ 'docs/**', '**.md', 'paper/**', 'CITATION.cff', '.zenodo.json' ]
 
 jobs:
   deploy:

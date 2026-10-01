@@ -469,4 +469,17 @@
   <data name="&quot;{0}&quot; alanına bir sayı girin." xml:space="preserve"><value>Enter a number in the "{0}" field.</value></data>
   <data name="Stok alkolden istenen derece ve miktarda seyreltme tarifi, dereceden yoğunluk ve yoğunluktan derece (OIML R 22)" xml:space="preserve"><value>Recipe for diluting stock alcohol to a given strength and amount, density from strength and strength from density (OIML R 22)</value></data>
   <data name="Hacim büzülmesi, OIML R 22 formülü ve tabloları, iteratif çözüm, işlenmiş seyreltme örnekleri; 21 kaynak" xml:space="preserve"><value>Volume contraction, the OIML R 22 formula and tables, the iterative solution, worked dilution examples; 21 references</value></data>
+  <data name="Yakınlaştırma" xml:space="preserve"><value>Zoom</value></data>
+  <data name="Yakınlaştır" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="Uzaklaştır" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="Tam üçgen" xml:space="preserve"><value>Full triangle</value></data>
+  <data name="Görünen bölge (alt sınırlar, %)" xml:space="preserve"><value>Visible region (lower limits, %)</value></data>
+  <data name="Yakınlaştırılmışken aralık kenara göre ölçeklenir: şu an {0} birim." xml:space="preserve"><value>While zoomed, the interval scales with the side: currently {0} units.</value></data>
+  <data name="Tam üçgen. Alt sınır girince o bölge çerçeveye büyütülür ve eksenler yeniden etiketlenir." xml:space="preserve"><value>Full triangle. Entering lower limits enlarges that region to fill the frame and relabels the axes.</value></data>
+  <data name="Görünen üçgenin kenarı {0} puan: her eksen alt sınırından {0} puan yukarıya kadar okunur." xml:space="preserve"><value>The visible triangle has a side of {0} points: each axis reads from its lower limit up to {0} points above it.</value></data>
+  <data name="Bütün noktaları ve bölgeleri 2 puan payla içine alan en küçük üçgen" xml:space="preserve"><value>The smallest triangle that contains all points and regions with a 2-point margin</value></data>
+  <data name="Verilere sığdır" xml:space="preserve"><value>Fit to data</value></data>
+  <data name="Bir sayı girin." xml:space="preserve"><value>Enter a number.</value></data>
+  <data name="Alt sınırlar negatif olamaz." xml:space="preserve"><value>Lower limits cannot be negative.</value></data>
+  <data name="Alt sınırların toplamı en fazla {0} olabilir (görünen üçgenin kenarı en az {1} puan)." xml:space="preserve"><value>The lower limits may add up to at most {0} (the visible triangle needs a side of at least {1} points).</value></data>
 </root>

@@ -120,6 +120,47 @@
                                 <option value="10">@L["10 birim (0, 10, 20, ...)"]</option>
                                 <option value="20">@L["20 birim (0, 20, 40, ...)"]</option>
                             </select>
+                            @if (!range.IsFull)
+                            {
+                                <small class="text-muted d-block mt-1">@L["Yakınlaştırılmışken aralık kenara göre ölçeklenir: şu an {0} birim.", FormatPct(TernaryRange.NiceStep(range.Side, axisInterval))]</small>
+                            }
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">@L["Görünen bölge (alt sınırlar, %)"]</label>
+                            <div class="row g-2">
+                                @for (int ax = 0; ax < 3; ax++)
+                                {
+                                    var axis = ax;
+                                    <div class="col-4">
+                                        <label class="form-label small mb-1 text-truncate d-block" style="color:@AxisColors[axis]" for="rangeMin@(axis)">@AxisTitle(axis)</label>
+                                        <input type="number" class="form-control form-control-sm" id="rangeMin@(axis)" min="0" max="95" step="1"
+                                               value="@F(rangeInputs[axis])" @onchange="e => OnRangeInputAsync(axis, e.Value)" />
+                                    </div>
+                                }
+                            </div>
+                            <small class="d-block mt-1 @(rangeError is null ? "text-muted" : "text-danger")">
+                                @if (rangeError is not null)
+                                {
+                                    @rangeError
+                                }
+                                else if (range.IsFull)
+                                {
+                                    @L["Tam üçgen. Alt sınır girince o bölge çerçeveye büyütülür ve eksenler yeniden etiketlenir."]
+                                }
+                                else
+                                {
+                                    @L["Görünen üçgenin kenarı {0} puan: her eksen alt sınırından {0} puan yukarıya kadar okunur.", FormatPct(range.Side)]
+                                }
+                            </small>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="FitRangeAsync" disabled="@(!HasPlottedPoints)"
+                                        title="@L["Bütün noktaları ve bölgeleri 2 puan payla içine alan en küçük üçgen"]">
+                                    <i class="bi bi-bounding-box"></i> @L["Verilere sığdır"]
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="ResetRangeAsync" disabled="@range.IsFull">
+                                    <i class="bi bi-triangle"></i> @L["Tam üçgen"]
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">@L["Polygon Kapatma"]</label>
@@ -223,7 +264,24 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    @RenderSvgMarkup()
+                    @* Yakınlaştırma = görünen bölge (TernaryRange): çerçeve sabit, içerik ve eksen etiketleri değişir. *@
+                    <div id="@SvgWrapId" class="diagram-wrap">
+                        @RenderSvgMarkup()
+                        <div class="zoom-toolbar btn-group-vertical" role="group" aria-label="@L["Yakınlaştırma"]">
+                            <button type="button" class="btn btn-sm btn-light" title="@L["Yakınlaştır"]" aria-label="@L["Yakınlaştır"]"
+                                    @onclick="() => ZoomAsync(ZoomStep)" disabled="@(range.Side <= TernaryRange.MinSide + 0.5)"><i class="bi bi-zoom-in"></i></button>
+                            <button type="button" class="btn btn-sm btn-light" title="@L["Uzaklaştır"]" aria-label="@L["Uzaklaştır"]"
+                                    @onclick="() => ZoomAsync(1 / ZoomStep)" disabled="@range.IsFull"><i class="bi bi-zoom-out"></i></button>
+                            <button type="button" class="btn btn-sm btn-light" title="@L["Tam üçgen"]" aria-label="@L["Tam üçgen"]"
+                                    @onclick="ResetRangeAsync" disabled="@range.IsFull"><i class="bi bi-triangle"></i></button>
+                        </div>
+                        @* Sayıları JS yazar (imleç altındaki bileşim); Blazor yalnız eksen adlarını çizer. *@
+                        <div class="zoom-readout" aria-hidden="true">
+                            <span style="color:#ef4444">@titleOil <b data-ro="oil"></b></span>
+                            <span style="color:#22c55e">@titleSurfactant <b data-ro="surf"></b></span>
+                            <span style="color:#3b82f6">@titleWater <b data-ro="water"></b></span>
+                        </div>
+                    </div>
 
                     @if (selectedGroup is int sel && GroupExists(sel))
                     {
@@ -426,7 +484,58 @@
         border: 1px solid var(--border-color);
         border-radius: 12px;
         background: var(--bg-primary);
+        /* Genişliğe göre büyür (viewBox oranı 500:450), ama ekrana sığar */
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 500 / 450;
+        max-height: max(340px, calc(100vh - 10rem));
     }
+
+    .diagram-wrap {
+        position: relative;
+    }
+
+    .zoom-toolbar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        box-shadow: var(--shadow-md);
+        border-radius: 8px;
+    }
+
+        .zoom-toolbar .btn {
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 0.2rem 0.45rem;
+        }
+
+            .zoom-toolbar .btn:hover:not(:disabled) {
+                background: var(--bg-hover);
+            }
+
+    .zoom-readout {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 0.75rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+        .zoom-readout.show {
+            opacity: 0.95;
+        }
 
         .diagram-svg .svg-bg {
             fill: var(--bg-primary);
@@ -502,6 +611,13 @@
     private int polygonCloseType = 1;
     private int edgeType = 2;
     private int axisInterval = 10;
+
+    // Görünen bölge (alt sınırlar). rangeInputs kutulardaki değerler; geçerliyse range'e geçer.
+    private TernaryRange range = TernaryRange.Full;
+    private readonly double[] rangeInputs = new double[3];
+    private string? rangeError;
+    private const double ZoomStep = 1.5;
+    private static readonly string[] AxisColors = ["#ef4444", "#22c55e", "#3b82f6"];
     private int borderAlpha = 180;
     private int fillAlpha = 80;
 
@@ -538,6 +654,7 @@
     // ---- Kalıcılık ----
     private const string LocalStorageKey = "PTCalc.ternary.document.v1";
     private const string SvgElementId = "ternary-svg";
+    private const string SvgWrapId = "ternary-svg-wrap";
     private List<object?[]> lastRows = new();          // son hesaplanan/yüklenen satırlar (otomatik kayıt için)
     private string autosaveNote = "";                 // ilk değer OnInitialized'da (arayüz dilinde)
     private bool hasLocalCopy;
@@ -668,7 +785,8 @@
             PolygonCloseType = polygonCloseType, EdgeType = edgeType, AxisInterval = axisInterval,
             BorderAlpha = borderAlpha, FillAlpha = fillAlpha,
             SmoothEdges = smoothEdges, SmoothTension = smoothTension,
-            ShowGradientFill = showGradientFill, GradientOpacity = gradientOpacity
+            ShowGradientFill = showGradientFill, GradientOpacity = gradientOpacity,
+            OilMin = range.OilMin, SurfMin = range.SurfMin, WaterMin = range.WaterMin
         },
         Styles = new Dictionary<string, GroupStyle>(groupStyles, StringComparer.OrdinalIgnoreCase)
     };
@@ -685,7 +803,92 @@
         smoothTension = Math.Clamp(s.SmoothTension, 0, 100);
         showGradientFill = s.ShowGradientFill;
         gradientOpacity = Math.Clamp(s.GradientOpacity, 10, 100);
+        SetRange(TernaryRange.Sanitize(s.OilMin, s.SurfMin, s.WaterMin));
     }
+
+    // ================= Görünen bölge =================
+
+    private string AxisTitle(int axis) => axis switch { 0 => titleOil, 1 => titleSurfactant, _ => titleWater };
+
+    private static string FormatPct(double v) => v.ToString("0.#", CultureInfo.CurrentCulture);
+
+    private void SetRange(TernaryRange r)
+    {
+        range = r;
+        rangeInputs[0] = r.OilMin; rangeInputs[1] = r.SurfMin; rangeInputs[2] = r.WaterMin;
+        rangeError = null;
+    }
+
+    private async Task OnRangeInputAsync(int axis, object? value)
+    {
+        if (!double.TryParse(value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
+        {
+            rangeError = T("Bir sayı girin.");
+            return;
+        }
+        rangeInputs[axis] = v;
+        var r = new TernaryRange(rangeInputs[0], rangeInputs[1], rangeInputs[2]);
+        if (rangeInputs.Any(x => x < 0))
+            rangeError = T("Alt sınırlar negatif olamaz.");
+        else if (!r.IsValid)
+            rangeError = T("Alt sınırların toplamı en fazla {0} olabilir (görünen üçgenin kenarı en az {1} puan).",
+                FormatPct(100 - TernaryRange.MinSide), FormatPct(TernaryRange.MinSide));
+        else
+        {
+            SetRange(r);
+            await AutosaveAsync();
+        }
+    }
+
+    private async Task ZoomAsync(double factor)
+    {
+        SetRange(range.Zoom(factor));
+        await AutosaveAsync();
+    }
+
+    private async Task ResetRangeAsync()
+    {
+        SetRange(TernaryRange.Full);
+        await AutosaveAsync();
+    }
+
+    /// <summary>Çizilen her şey: veri noktaları, bölge köşeleri (kapatma noktaları dahil), yumuşatılmış eğri.</summary>
+    private IEnumerable<PointD> PlottedPoints()
+    {
+        foreach (var d in calculatedData)
+            if (d.p is not null) yield return d.p;
+        foreach (var kvp in calculatedPolygons)
+        {
+            if (kvp.Value.Count < 3) continue;
+            if (BuildSmoothed(kvp.Key, kvp.Value) is { } o)
+            {
+                if (o.Start is not null) yield return o.Start;
+                if (o.End is not null) yield return o.End;
+                foreach (var c in o.Curve) { yield return c.P0; yield return c.C1; yield return c.C2; yield return c.P3; }
+            }
+            else
+                foreach (var q in kvp.Value) yield return q;
+        }
+        foreach (var kvp in smallGroups)
+            foreach (var q in kvp.Value) yield return q;
+    }
+
+    private bool HasPlottedPoints => calculatedData.Any(d => d.p is not null);
+
+    private async Task FitRangeAsync()
+    {
+        SetRange(TernaryRange.FitTo(PlottedPoints()));
+        await AutosaveAsync();
+    }
+
+    /// <summary>Tam üçgendeki nokta → SVG (görünen bölgeye göre).</summary>
+    private (double X, double Y) Map(PointD p)
+    {
+        var f = range.ToFrame(p);
+        return (ToSvgX(f.X), ToSvgY(f.Y));
+    }
+
+    private bool Visible(PointD p) => range.IsFull || range.Contains(p);
 
     /// <summary>Belgeyi bu tarayıcıya yazar. Geri yükleme sırasında ve grid hazır değilken sessizce geçer.</summary>
     private async Task AutosaveAsync()
@@ -892,7 +1095,7 @@
     private string SmoothPathData(PolygonSmoother.SmoothedOutline o)
     {
         var sb = new System.Text.StringBuilder();
-        string Pt(PointD q) => $"{F(ToSvgX(q.X))},{F(ToSvgY(q.Y))}";
+        string Pt(PointD q) { var (x, y) = Map(q); return $"{F(x)},{F(y)}"; }
 
         var first = o.Curve[0].P0;
         if (o.Start is not null) { sb.Append("M ").Append(Pt(o.Start)).Append(" L ").Append(Pt(first)); }
@@ -910,8 +1113,9 @@
     /// SVG &lt;text&gt; öğesi. Razor'da "&lt;text&gt;" özel bir etikettir ve öznitelik alamaz
     /// (RZ1023); bu yüzden metinler RenderTreeBuilder ile üretilir.
     /// </summary>
+    /// <paramref name="rotate"/>: (x, y) çevresinde döndürme açısı.
     private void SvgText(RenderTreeBuilder b, double x, double y, string anchor, int fontSize,
-                         string? fontWeight, string? fill, string? cssClass, string? transform, string content)
+                         string? fontWeight, string? fill, string? cssClass, string content, int? rotate = null)
     {
         b.OpenElement(0, "text");
         b.AddAttribute(1, "x", F(x));
@@ -921,13 +1125,13 @@
         if (fontWeight is not null) b.AddAttribute(5, "font-weight", fontWeight);
         if (fill is not null) b.AddAttribute(6, "fill", fill);
         if (cssClass is not null) b.AddAttribute(7, "class", cssClass);
-        if (transform is not null) b.AddAttribute(8, "transform", transform);
+        if (rotate is int r) b.AddAttribute(8, "transform", $"rotate({r}, {F(x)}, {F(y)})");
         b.AddContent(9, content);
         b.CloseElement();
     }
 
     private string PolygonPointsAttr(List<PointD> pts)
-        => string.Join(" ", pts.Select(p => $"{F(ToSvgX(p.X))},{F(ToSvgY(p.Y))}"));
+        => string.Join(" ", pts.Select(p => { var (x, y) = Map(p); return $"{F(x)},{F(y)}"; }));
 
     private void RecalculatePolygons()
     {
@@ -965,6 +1169,7 @@
                 double oil = y / Sin60;
                 double surf = x - y * Tan30;
                 double water = 1 - oil - surf;
+                (oil, surf, water) = range.FromFrame(oil, surf, water);
                 if (oil < 0) oil = 0; if (surf < 0) surf = 0; if (water < 0) water = 0;
                 double max = Math.Max(oil, Math.Max(surf, water));
                 if (max > 0) { oil /= max; surf /= max; water /= max; }
@@ -986,10 +1191,11 @@
     /// </summary>
     private RenderFragment RenderSvgMarkup() => __builder =>
     {
-        int tickCount = 100 / axisInterval;
+        double tickStep = TernaryRange.NiceStep(range.Side, axisInterval);
         var trianglePoints = $"{F(TopX)},{F(TopY)} {F(LeftX)},{F(LeftY)} {F(RightX)},{F(RightY)}";
 
-        <svg id="@SvgElementId" width="100%" height="@F(SvgHeight)" viewBox="0 0 @F(SvgWidth) @F(SvgHeight)" class="diagram-svg" style="color-scheme: light dark;"
+        <svg id="@SvgElementId" viewBox="0 0 @F(SvgWidth) @F(SvgHeight)" class="diagram-svg" style="color-scheme: light dark;"
+             data-range="@($"{F(range.OilMin)} {F(range.SurfMin)} {F(range.WaterMin)}")"
              @onclick="ClearSelection">
             <defs>
                 <clipPath id="triangleClip">
@@ -1011,38 +1217,50 @@
                 </g>
             }
 
-            @for (int k = 0; k <= tickCount; k++)
+            @* Tick'ler: görünen bölgenin her ekseni için [min, min + kenar] içindeki adım katları.
+               f, çerçevedeki konum (0–1). Grid çizgileri köşelerde çizilmez. *@
+            @foreach (var (v, f) in TernaryRange.Ticks(range.OilMin, range.Side, tickStep))
             {
-                double iVal = (double)k / tickCount;
-                double aVal = iVal * Cos60;
-                double bVal = iVal * Sin60;
-                double oilX1 = ToSvgX(aVal), oilY1 = ToSvgY(bVal), oilX2 = ToSvgX(1 - aVal);
-                double oilTickX = ToSvgX(aVal - 0.02);
-                double surfX1 = ToSvgX(1 - aVal), surfY1 = ToSvgY(bVal), surfX2 = ToSvgX(1 - iVal), surfY2 = ToSvgY(0);
-                double surfTickX = ToSvgX(1 - aVal + 0.02 * Cos60), surfTickY = ToSvgY(bVal + 0.02 * Sin60);
-                int surfLabel = ((tickCount - k) * 100) / tickCount;
-                double waterX1 = ToSvgX(iVal), waterY1 = ToSvgY(0), waterX2 = ToSvgX(aVal), waterY2 = ToSvgY(bVal);
-                double waterTickBaseX = ToSvgX(1 - iVal), waterTickBaseY = ToSvgY(0);
-                double waterTickX = ToSvgX((1 - iVal) + 0.02 * Cos60), waterTickY = ToSvgY(-0.02);
-
-                if (k > 0 && k < tickCount)
+                double aVal = f * Cos60, bVal = f * Sin60;
+                double x1 = ToSvgX(aVal), y1 = ToSvgY(bVal), tickX = ToSvgX(aVal - 0.02);
+                if (f > 1e-6 && f < 1 - 1e-6)
                 {
-                    <line x1="@F(oilX1)" y1="@F(oilY1)" x2="@F(oilX2)" y2="@F(oilY1)" stroke="#ef4444" stroke-width="0.5" opacity="0.25" />
-                    <line x1="@F(surfX1)" y1="@F(surfY1)" x2="@F(surfX2)" y2="@F(surfY2)" stroke="#22c55e" stroke-width="0.5" opacity="0.25" />
-                    <line x1="@F(waterX1)" y1="@F(waterY1)" x2="@F(waterX2)" y2="@F(waterY2)" stroke="#3b82f6" stroke-width="0.5" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - aVal))" y2="@F(y1)" stroke="#ef4444" stroke-width="0.5" opacity="0.25" />
                 }
-                <line x1="@F(oilX1)" y1="@F(oilY1)" x2="@F(oilTickX)" y2="@F(oilY1)" stroke="#ef4444" stroke-width="1.5" />
-                SvgText(__builder, oilTickX - 3, oilY1 + 4, "end", 10, null, "#ef4444", null, null, (k * axisInterval).ToString()); 
-                <line x1="@F(surfX1)" y1="@F(surfY1)" x2="@F(surfTickX)" y2="@F(surfTickY)" stroke="#22c55e" stroke-width="1.5" />
-                SvgText(__builder, surfTickX + 5, surfTickY + 4, "start", 10, null, "#22c55e", null, null, surfLabel.ToString()); 
-                <line x1="@F(waterTickBaseX)" y1="@F(waterTickBaseY)" x2="@F(waterTickX)" y2="@F(waterTickY)" stroke="#3b82f6" stroke-width="1.5" />
-                SvgText(__builder, waterTickX, waterTickY + 15, "middle", 10, null, "#3b82f6", null, null, (k * axisInterval).ToString()); 
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(y1)" stroke="#ef4444" stroke-width="1.5" />
+                SvgText(__builder, tickX - 3, y1 + 4, "end", 12, null, "#ef4444", null, FormatPct(v));
+            }
+            @foreach (var (v, g) in TernaryRange.Ticks(range.SurfMin, range.Side, tickStep))
+            {
+                double i = 1 - g, aVal = i * Cos60, bVal = i * Sin60;
+                double x1 = ToSvgX(1 - aVal), y1 = ToSvgY(bVal);
+                double tickX = ToSvgX(1 - aVal + 0.02 * Cos60), tickY = ToSvgY(bVal + 0.02 * Sin60);
+                if (g > 1e-6 && g < 1 - 1e-6)
+                {
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - i))" y2="@F(ToSvgY(0))" stroke="#22c55e" stroke-width="0.5" opacity="0.25" />
+                }
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#22c55e" stroke-width="1.5" />
+                SvgText(__builder, tickX + 4, tickY + 4, "start", 12, null, "#22c55e", null, FormatPct(v));
+            }
+            @foreach (var (v, h) in TernaryRange.Ticks(range.WaterMin, range.Side, tickStep))
+            {
+                double i = 1 - h;
+                double x1 = ToSvgX(i), y1 = ToSvgY(0);
+                double tickX = ToSvgX(i + 0.02 * Cos60), tickY = ToSvgY(-0.02);
+                if (h > 1e-6 && h < 1 - 1e-6)
+                {
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(i * Cos60))" y2="@F(ToSvgY(i * Sin60))" stroke="#3b82f6" stroke-width="0.5" opacity="0.25" />
+                }
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#3b82f6" stroke-width="1.5" />
+                SvgText(__builder, tickX, tickY + 13, "middle", 12, null, "#3b82f6", null, FormatPct(v));
             }
 
             <line x1="@F(ToSvgX(0))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(1))" y2="@F(ToSvgY(0))" stroke="#3b82f6" stroke-width="2.5" />
             <line x1="@F(ToSvgX(1))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(0.5))" y2="@F(ToSvgY(Sin60))" stroke="#22c55e" stroke-width="2.5" />
             <line x1="@F(ToSvgX(0.5))" y1="@F(ToSvgY(Sin60))" x2="@F(ToSvgX(0))" y2="@F(ToSvgY(0))" stroke="#ef4444" stroke-width="2.5" />
 
+            @* Yakınlaştırılmışken bölgeler çerçeveye kırpılır (tam üçgende kırpılmaz: kenardaki çizgi yarım kalmasın). *@
+            <g clip-path="@(range.IsFull ? null : "url(#triangleClip)")">
             @* Faz bölgeleri (≥3 nokta). Seçili grup: kalın + kesikli kenar. *@
             @foreach (var kvp in calculatedPolygons.OrderBy(k => k.Key))
             {
@@ -1082,51 +1300,57 @@
 
                 if (pts.Count == 1)
                 {
-                    <circle class="ternary-shape" cx="@F(ToSvgX(pts[0].X))" cy="@F(ToSvgY(pts[0].Y))" r="8"
+                    var (px, py) = Map(pts[0]);
+                    <circle class="ternary-shape" cx="@F(px)" cy="@F(py)" r="8"
                             fill="@st.Fill" fill-opacity="@F(st.FillOpacity)" stroke="@st.Stroke"
                             stroke-width="@F(isSel ? st.StrokeWidth + 2 : st.StrokeWidth)" stroke-opacity="@F(st.StrokeOpacity)" stroke-dasharray="@dash"
                             @onclick="() => SelectGroup(groupNum)" @onclick:stopPropagation="true" />
                 }
                 else if (pts.Count == 2)
                 {
-                    <line class="ternary-shape" x1="@F(ToSvgX(pts[0].X))" y1="@F(ToSvgY(pts[0].Y))" x2="@F(ToSvgX(pts[1].X))" y2="@F(ToSvgY(pts[1].Y))"
+                    var (ax1, ay1) = Map(pts[0]);
+                    var (ax2, ay2) = Map(pts[1]);
+                    <line class="ternary-shape" x1="@F(ax1)" y1="@F(ay1)" x2="@F(ax2)" y2="@F(ay2)"
                           stroke="@st.Stroke" stroke-width="@F(isSel ? st.StrokeWidth + 3 : st.StrokeWidth + 1)" stroke-opacity="@F(st.StrokeOpacity)"
                           stroke-linecap="round" stroke-dasharray="@dash"
                           @onclick="() => SelectGroup(groupNum)" @onclick:stopPropagation="true" />
                 }
             }
+            </g>
 
             @* Veri noktaları: grup kenar rengiyle; tıklanınca grubu seçer *@
             @foreach (var grp in calculatedData.GroupBy(d => d.grup).OrderBy(g => g.Key))
             {
                 var groupNum = grp.Key;
                 var color = StyleFor(groupNum).Stroke;
-                foreach (var p in grp.OrderBy(d => d.siraNo).Where(d => d.p != null))
+                foreach (var p in grp.OrderBy(d => d.siraNo).Where(d => d.p != null && Visible(d.p)))
                 {
-                    <circle class="ternary-shape" cx="@F(ToSvgX(p.p!.X))" cy="@F(ToSvgY(p.p!.Y))" r="4" fill="@color" stroke="white" stroke-width="1"
+                    var (px, py) = Map(p.p!);
+                    <circle class="ternary-shape" cx="@F(px)" cy="@F(py)" r="4" fill="@color" stroke="white" stroke-width="1"
                             @onclick="() => SelectGroup(groupNum)" @onclick:stopPropagation="true" />
                 }
             }
 
             @* Grup merkezleri *@
-            @foreach (var group in resultGroups.Where(g => g.PolygonCenterD != null))
+            @foreach (var group in resultGroups.Where(g => g.PolygonCenterD != null && Visible(g.PolygonCenterD)))
             {
-                <circle cx="@F(ToSvgX(group.PolygonCenterD!.X))" cy="@F(ToSvgY(group.PolygonCenterD!.Y))" r="5" fill="red" stroke="white" stroke-width="1.5" />
+                var (cx, cy) = Map(group.PolygonCenterD!);
+                <circle cx="@F(cx)" cy="@F(cy)" r="5" fill="red" stroke="white" stroke-width="1.5" />
             }
 
             @if (!string.IsNullOrWhiteSpace(chartTitle))
             {
-                SvgText(__builder, SvgWidth / 2, 20, "middle", 18, "bold", null, "svg-title", null, chartTitle);
+                SvgText(__builder, SvgWidth / 2, 20, "middle", 18, "bold", null, "svg-title", chartTitle);
             }
 
             @{
-                double oilLabelX = ToSvgX(0.5 * Cos60 - 0.08), oilLabelY = ToSvgY(0.5 * Sin60);
-                double surfLabelX = ToSvgX(1 - 0.5 * Cos60 + 0.08), surfLabelY = ToSvgY(0.5 * Sin60);
+                double midY = ToSvgY(0.5 * Sin60);
+                double oilLabelX = ToSvgX(0.5 * Cos60 - 0.095), surfLabelX = ToSvgX(1 - 0.5 * Cos60 + 0.095);
             }
             @{
-                SvgText(__builder, oilLabelX, oilLabelY, "middle", 14, "bold", "#ef4444", null, $"rotate(-60, {F(oilLabelX)}, {F(oilLabelY)})", titleOil);
-                SvgText(__builder, surfLabelX, surfLabelY, "middle", 14, "bold", "#22c55e", null, $"rotate(60, {F(surfLabelX)}, {F(surfLabelY)})", titleSurfactant);
-                SvgText(__builder, ToSvgX(0.5), ToSvgY(-0.12), "middle", 14, "bold", "#3b82f6", null, null, titleWater);
+                SvgText(__builder, oilLabelX, midY, "middle", 16, "bold", "#ef4444", null, titleOil, -60);
+                SvgText(__builder, surfLabelX, midY, "middle", 16, "bold", "#22c55e", null, titleSurfactant, 60);
+                SvgText(__builder, ToSvgX(0.5), ToSvgY(-0.12), "middle", 16, "bold", "#3b82f6", null, titleWater);
             }
         </svg>
     };
@@ -1151,6 +1375,17 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("ternaryReadout.attach", SvgElementId, SvgWrapId, new
+            {
+                left = LeftX,
+                bottom = LeftY,
+                side = TriangleSide
+            });
+        }
+        catch (JSException) { }
 
         await Task.Delay(100);
         isLoaded = true;

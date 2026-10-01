@@ -11,7 +11,7 @@ public class TernaryDocumentTests
         var doc = new TernaryDocument
         {
             Rows = { new object?[] { "Deney 1", 1.0, 8.14, 72.67, 19.19 }, new object?[] { "Deney 1", 2.0, 16.87, 65.43, 17.7 } },
-            Settings = new TernarySettings { ChartTitle = "Test", SmoothEdges = true, SmoothTension = 80, PolygonCloseType = 2 },
+            Settings = new TernarySettings { ChartTitle = "Test", SmoothEdges = true, SmoothTension = 80, PolygonCloseType = 2, OilMin = 5, SurfMin = 44, WaterMin = 7.5 },
             Styles = { ["Deney 1"] = new GroupStyle { Fill = "#112233", FillAlpha = 120 } }
         };
 
@@ -25,9 +25,18 @@ public class TernaryDocumentTests
         Assert.True(back.Settings.SmoothEdges);
         Assert.Equal(80, back.Settings.SmoothTension);
         Assert.Equal(2, back.Settings.PolygonCloseType);
+        Assert.Equal((5.0, 44.0, 7.5), (back.Settings.OilMin, back.Settings.SurfMin, back.Settings.WaterMin));
         Assert.Equal("#112233", back.Styles["deney 1"].Fill);   // ada göre, büyük/küçük harf duyarsız
         Assert.Equal(120, back.Styles["Deney 1"].FillAlpha);
         Assert.Null(back.Styles["Deney 1"].Stroke);
+    }
+
+    [Fact]
+    public void Older_documents_without_range_open_as_full_triangle()
+    {
+        var back = TernaryDocument.FromJson("""{ "version": 1, "rows": [], "settings": { "chartTitle": "Eski" } }""");
+        Assert.NotNull(back);
+        Assert.Equal((0.0, 0.0, 0.0), (back!.Settings.OilMin, back.Settings.SurfMin, back.Settings.WaterMin));
     }
 
     [Fact]

@@ -80,3 +80,47 @@ window.ternaryStore = {
         return true;
     }
 };
+
+// İmleç altındaki bileşim (%), eksenlerle aynı okuma. Görünen bölge (alt sınırlar) SVG'nin
+// data-range özniteliğinde; Blazor her çizimde günceller, burada her harekette okunur.
+// opts: { left, bottom, side } — çerçeve üçgeninin sol alt köşesi ve kenarı (SVG birimi).
+window.ternaryReadout = {
+    attach: function (svgId, wrapId, opts) {
+        const svg = document.getElementById(svgId);
+        const wrap = document.getElementById(wrapId);
+        if (!svg || !wrap || svg.__ptReadout) return;
+        svg.__ptReadout = true;
+
+        const box = wrap.querySelector('.zoom-readout');
+        if (!box || !opts || !opts.side) return;
+        const outOil = box.querySelector('[data-ro="oil"]');
+        const outSurf = box.querySelector('[data-ro="surf"]');
+        const outWater = box.querySelector('[data-ro="water"]');
+        const SIN60 = Math.sqrt(3) / 2, TAN30 = 1 / Math.sqrt(3);
+        const lang = document.documentElement.lang || undefined;
+        const fmt1 = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        const fmt2 = new Intl.NumberFormat(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        svg.addEventListener('pointermove', function (e) {
+            if (e.pointerType === 'touch') return;
+            const m = svg.getScreenCTM();
+            if (!m) return;
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX; pt.y = e.clientY;
+            const p = pt.matrixTransform(m.inverse());
+
+            // Çerçevedeki bileşim (0–1) → gerçek bileşim: min + kenar · çerçeve
+            const X = (p.x - opts.left) / opts.side, Y = (opts.bottom - p.y) / opts.side;
+            const fo = Y / SIN60, fs = X - Y * TAN30, fw = 1 - X - Y * TAN30;
+            if (fo < 0 || fs < 0 || fw < 0) { box.classList.remove('show'); return; }
+            const r = (svg.getAttribute('data-range') || '0 0 0').split(' ').map(Number);
+            const side = 100 - r[0] - r[1] - r[2];
+            const f = side < 25 ? fmt2 : fmt1;
+            outOil.textContent = f.format(r[0] + side * fo);
+            outSurf.textContent = f.format(r[1] + side * fs);
+            outWater.textContent = f.format(r[2] + side * fw);
+            box.classList.add('show');
+        });
+        svg.addEventListener('pointerleave', function () { box.classList.remove('show'); });
+    }
+};

@@ -84,6 +84,11 @@ public sealed class TernarySettings
     public int SmoothTension { get; set; } = 60;
     public bool ShowGradientFill { get; set; }
     public int GradientOpacity { get; set; } = 40;
+
+    /// <summary>Görünen bölgenin alt sınırları (yüzde); hepsi 0 → tam üçgen. Bkz. TernaryRange.</summary>
+    public double OilMin { get; set; }
+    public double SurfMin { get; set; }
+    public double WaterMin { get; set; }
 }
 
 /// <summary>

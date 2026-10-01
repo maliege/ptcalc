@@ -411,6 +411,16 @@
             {
                 datasets = new object[]
                 {
+                    // Her artığı sıfır çizgisine bağlayan dikey çizgi: (x, 0) → (x, artık), araya null konunca çizgi kesilir.
+                    new
+                    {
+                        label = "",
+                        data = r.Points.Where(p => !double.IsNaN(p.ResidualPct))
+                            .SelectMany(p => new[] { new { x = p.Conc, y = (double?)0.0 }, new { x = p.Conc, y = (double?)p.ResidualPct }, new { x = p.Conc, y = (double?)null } })
+                            .ToArray(),
+                        type = "line", fill = false, showLine = true, spanGaps = false, lineTension = 0,
+                        borderColor = "rgba(220, 38, 38, 0.45)", borderWidth = 1.5, pointRadius = 0, pointHitRadius = 0
+                    },
                     new { label = L["Artık %"].Value, data = r.Points.Where(p => !double.IsNaN(p.ResidualPct)).Select(p => new { x = p.Conc, y = p.ResidualPct }).ToArray(), backgroundColor = "rgba(220, 38, 38, 0.75)", pointRadius = 4 },
                     new { label = "0", data = new[] { new { x = x0, y = 0.0 }, new { x = x1, y = 0.0 } }, type = "line", fill = false, borderColor = "rgba(100, 116, 139, 0.9)", pointRadius = 0, borderWidth = 1 }
                 }

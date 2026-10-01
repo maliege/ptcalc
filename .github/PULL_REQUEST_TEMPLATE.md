@@ -11,3 +11,4 @@
 - [ ] Tests added or updated; `dotnet test PTCalc.Core.Tests` passes locally
 - [ ] Number formats checked for tr-TR (comma) and en-US (dot)
 - [ ] Comparisons with other software are worded as comparisons, sources cited with DOI
+- [ ] User-visible changes noted under `[Unreleased]` in `CHANGELOG.md`

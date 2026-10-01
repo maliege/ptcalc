@@ -69,3 +69,7 @@ Ayrıntı: `CONTRIBUTING.md`.
 
 Her yayında `CITATION.cff` (version, date-released) ve `PTCalc.Core.csproj` (Version) birlikte güncellenir, `vX.Y.Z`
 etiketi ve GitHub Release atılır; Zenodo release'i arşivler.
+
+Kullanıcıya görünen her değişiklik `CHANGELOG.md`'nin `[Unreleased]` bölümüne İngilizce eklenir (Keep a Changelog:
+Added / Changed / Fixed / Removed). Sürümde bu bölüm `## [X.Y.Z] - tarih` + Zenodo sürüm DOI'si olur, alttaki karşılaştırma
+bağlantıları güncellenir.

@@ -34,7 +34,8 @@ Use `http://ptcalc.net.localhost:5277` to see the English default locally; plain
 to any branch other than `main` runs CI only: the build on Ubuntu and Windows with warnings as errors, and the full
 test suite. `main` is what the live site runs, and every push to it redeploys ptcalc.net and ptcalc.tr; changes
 therefore reach `main` only by merging `dev` when they are ready to publish. To contribute, branch from `dev`, keep
-one topic per pull request, add or update tests, run `dotnet test`, fill the PR template, and target `dev`.
+one topic per pull request, add or update tests, run `dotnet test`, note user-visible changes under
+`[Unreleased]` in [CHANGELOG.md](CHANGELOG.md), fill the PR template, and target `dev`.
 Release tags and GitHub Releases, which Zenodo archives, are cut by the maintainer.
 
 **Wording.** Relationships with other software are described as comparisons ("compared with DDSolver"), never

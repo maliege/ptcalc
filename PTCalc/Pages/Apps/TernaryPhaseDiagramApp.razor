@@ -12,6 +12,7 @@
 @using PTCalc.Components.UI
 @inject IJSRuntime JS
 @inject IStringLocalizer<SharedResource> L
+@implements IDisposable
 
 
 <section id="ternary-container" class="container-fluid p-4">
@@ -265,7 +266,7 @@
                 </div>
                 <div class="card-body">
                     @* Yakınlaştırma = görünen bölge (TernaryRange): çerçeve sabit, içerik ve eksen etiketleri değişir. *@
-                    <div id="@SvgWrapId" class="diagram-wrap">
+                    <div id="@SvgWrapId" class="diagram-wrap @(range.IsFull ? null : "is-zoomed")">
                         @RenderSvgMarkup()
                         <div class="zoom-toolbar btn-group-vertical" role="group" aria-label="@L["Yakınlaştırma"]">
                             <button type="button" class="btn btn-sm btn-light" title="@L["Yakınlaştır"]" aria-label="@L["Yakınlaştır"]"
@@ -276,6 +277,7 @@
                                     @onclick="ResetRangeAsync" disabled="@range.IsFull"><i class="bi bi-triangle"></i></button>
                         </div>
                         @* Sayıları JS yazar (imleç altındaki bileşim); Blazor yalnız eksen adlarını çizer. *@
+                        <div class="zoom-hint" aria-hidden="true"></div>
                         <div class="zoom-readout" aria-hidden="true">
                             <span style="color:#ef4444">@titleOil <b data-ro="oil"></b></span>
                             <span style="color:#22c55e">@titleSurfactant <b data-ro="surf"></b></span>
@@ -496,6 +498,38 @@
         position: relative;
     }
 
+        /* Yakınlaştırılmışken sürükleme kaydırır; dokunmatikte tek parmak da (sayfa kaymaz) */
+        .diagram-wrap.is-zoomed .diagram-svg {
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .diagram-svg.is-panning,
+        .diagram-svg.is-panning .ternary-shape {
+            cursor: grabbing;
+        }
+
+    .zoom-hint {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        font-size: 0.85rem;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+        .zoom-hint.show {
+            opacity: 1;
+        }
+
     .zoom-toolbar {
         position: absolute;
         top: 10px;
@@ -617,6 +651,7 @@
     private readonly double[] rangeInputs = new double[3];
     private string? rangeError;
     private const double ZoomStep = 1.5;
+    private DotNetObjectReference<TernaryPhaseDiagramApp>? selfRef;
     private static readonly string[] AxisColors = ["#ef4444", "#22c55e", "#3b82f6"];
     private int borderAlpha = 180;
     private int fillAlpha = 80;
@@ -889,6 +924,28 @@
     }
 
     private bool Visible(PointD p) => range.IsFull || range.Contains(p);
+
+    /// <summary>Çerçeve üçgeni, kenarları <paramref name="margin"/> SVG birimi dışarı kaydırılmış (kırpma için).</summary>
+    private string FramePoints(double margin)
+    {
+        double cx = (TopX + LeftX + RightX) / 3, cy = (TopY + LeftY + RightY) / 3;
+        double k = 1 + 2 * margin / (TriangleSide / Math.Sqrt(3));   // kenar m kayınca köşe merkezden 2m uzaklaşır
+        string P(double x, double y) => $"{F(cx + (x - cx) * k)},{F(cy + (y - cy) * k)}";
+        return $"{P(TopX, TopY)} {P(LeftX, LeftY)} {P(RightX, RightY)}";
+    }
+
+    /// <summary>Tekerlek/sürükleme bitince JS (ternaryView) yeni aralığı bildirir.</summary>
+    [JSInvokable]
+    public async Task SetRangeFromView(double oilMin, double surfMin, double waterMin)
+    {
+        var r = new TernaryRange(oilMin, surfMin, waterMin);
+        if (!r.IsValid || r == range) return;
+        SetRange(r);
+        StateHasChanged();
+        await AutosaveAsync();
+    }
+
+    public void Dispose() => selfRef?.Dispose();
 
     /// <summary>Belgeyi bu tarayıcıya yazar. Geri yükleme sırasında ve grid hazır değilken sessizce geçer.</summary>
     private async Task AutosaveAsync()
@@ -1197,9 +1254,19 @@
         <svg id="@SvgElementId" viewBox="0 0 @F(SvgWidth) @F(SvgHeight)" class="diagram-svg" style="color-scheme: light dark;"
              data-range="@($"{F(range.OilMin)} {F(range.SurfMin)} {F(range.WaterMin)}")"
              @onclick="ClearSelection">
+            @* İçerik üç katmanda: dışta dönüşümsüz kırpma grubu, içte ternary-pan. Tekerlek/sürükleme
+               sırasında JS ternary-pan'e önizleme dönüşümü verir (sunucu yeni aralıkla çizene kadar);
+               kırpma dışta olduğu için çerçevede kalır. Bölgeler tam üçgende kenar çizgisi yarım
+               kalmasın diye biraz geniş kırpılır, noktalar her zaman. *@
             <defs>
-                <clipPath id="triangleClip">
+                <clipPath id="frameClip">
                     <polygon points="@trianglePoints" />
+                </clipPath>
+                <clipPath id="contentClip">
+                    <polygon points="@(range.IsFull ? FramePoints(8) : trianglePoints)" />
+                </clipPath>
+                <clipPath id="pointsClip">
+                    <polygon points="@FramePoints(10)" />
                 </clipPath>
             </defs>
 
@@ -1209,11 +1276,15 @@
             }
             else
             {
-                <g clip-path="url(#triangleClip)" shape-rendering="crispEdges">
-                    @foreach (var c in GradientCells())
-                    {
-                        <rect x="@F(c.x)" y="@F(c.y)" width="@F(GradientCell)" height="@F(GradientCell)" fill="@c.color" fill-opacity="1" stroke="none" />
-                    }
+                <g clip-path="url(#frameClip)">
+                    <g class="ternary-pan">
+                        <g clip-path="url(#frameClip)" shape-rendering="crispEdges">
+                            @foreach (var c in GradientCells())
+                            {
+                                <rect x="@F(c.x)" y="@F(c.y)" width="@F(GradientCell)" height="@F(GradientCell)" fill="@c.color" fill-opacity="1" stroke="none" />
+                            }
+                        </g>
+                    </g>
                 </g>
             }
 
@@ -1259,8 +1330,7 @@
             <line x1="@F(ToSvgX(1))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(0.5))" y2="@F(ToSvgY(Sin60))" stroke="#22c55e" stroke-width="2.5" />
             <line x1="@F(ToSvgX(0.5))" y1="@F(ToSvgY(Sin60))" x2="@F(ToSvgX(0))" y2="@F(ToSvgY(0))" stroke="#ef4444" stroke-width="2.5" />
 
-            @* Yakınlaştırılmışken bölgeler çerçeveye kırpılır (tam üçgende kırpılmaz: kenardaki çizgi yarım kalmasın). *@
-            <g clip-path="@(range.IsFull ? null : "url(#triangleClip)")">
+            <g clip-path="url(#contentClip)"><g class="ternary-pan">
             @* Faz bölgeleri (≥3 nokta). Seçili grup: kalın + kesikli kenar. *@
             @foreach (var kvp in calculatedPolygons.OrderBy(k => k.Key))
             {
@@ -1316,8 +1386,9 @@
                           @onclick="() => SelectGroup(groupNum)" @onclick:stopPropagation="true" />
                 }
             }
-            </g>
+            </g></g>
 
+            <g clip-path="url(#pointsClip)"><g class="ternary-pan">
             @* Veri noktaları: grup kenar rengiyle; tıklanınca grubu seçer *@
             @foreach (var grp in calculatedData.GroupBy(d => d.grup).OrderBy(g => g.Key))
             {
@@ -1337,6 +1408,7 @@
                 var (cx, cy) = Map(group.PolygonCenterD!);
                 <circle cx="@F(cx)" cy="@F(cy)" r="5" fill="red" stroke="white" stroke-width="1.5" />
             }
+            </g></g>
 
             @if (!string.IsNullOrWhiteSpace(chartTitle))
             {
@@ -1378,8 +1450,10 @@
 
         try
         {
-            await JS.InvokeVoidAsync("ternaryReadout.attach", SvgElementId, SvgWrapId, new
+            selfRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("ternaryView.attach", SvgElementId, SvgWrapId, selfRef, new
             {
+                hint = T("Yakınlaştırmak için Ctrl + tekerlek"),
                 left = LeftX,
                 bottom = LeftY,
                 side = TriangleSide

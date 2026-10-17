@@ -134,6 +134,8 @@ continuous integration on every push.
 
 PTCalc continues desktop tools that have been used in the author's department for dissolution and
 phase-diagram work since 1995, including published studies on erodible tablets [@Karasulu2000]. The
+dissolution-kinetics and IVIVC program from which the kinetic engine descends was presented in 2001
+[@Ege2001] and is cited in at least six papers from 2003 to 2024. The
 phase-diagram analysis program from which the ternary tool descends was presented in 2004 [@Ege2004]; we have
 found at least seven peer-reviewed papers from 2007 to 2026 that cite it or name it as the software used to
 draw their pseudo-ternary diagrams, for example in ocular [@UstundagOkur2014] and oral [@Ebrahimi2026]

@@ -39,17 +39,16 @@ linear regression with prediction intervals, and calibration curves with LOD/LOQ
 to give dilution recipes and density–strength conversions for galenical preparation.
 
 The application runs in the browser (Blazor Server, .NET 10) at <https://ptcalc.net> (English) and
-<https://ptcalc.tr> (Turkish); data entered by the user stays in the browser session and is never stored on the
-server. The same computations are available as a dependency-light class library (`PTCalc.Core`, MIT licence)
+<https://ptcalc.tr> (Turkish); data entered by the user are held only for the duration of the session and are never saved on
+the server. The same computations are available as a dependency-light class library (`PTCalc.Core`, MIT licence)
 that can be used from any .NET language or from scripts. Each tool ships with a bilingual guide that explains
 the method, its prerequisites and its common misuses, with DOI-referenced sources.
 
 # Statement of need
 
 Dissolution-profile modelling is a standard step in formulation development and in *in vitro*–*in vivo*
-correlation studies, yet it is still mostly done with spreadsheets. The most widely used dedicated tool,
-DDSolver [@Zhang2010], is an Excel add-in restricted to Windows Excel, and KinetDS [@Mendyk2012] is a Java
-desktop program that is no longer maintained. Spreadsheet practice commonly linearises each model (for example
+correlation studies, yet it is still mostly done with spreadsheets. Dedicated tools are few and
+closed or unmaintained (see State of the field). Spreadsheet practice commonly linearises each model (for example
 $\log F$ versus $\log t$ for Korsmeyer–Peppas) and compares models by $R^2$ in the transformed space, which
 makes the goodness-of-fit measures incomparable across models and systematically favours models with more
 parameters. PTCalc addresses these problems in one place:
@@ -92,9 +91,7 @@ besides slope, intercept, LOD and LOQ it back-calculates every standard, flags l
 accuracy limits, and shows the inverse-prediction calculation for unknown samples step by step with the
 intermediate quantities [@Miller2018].
 
-PTCalc is intended for formulation scientists, analytical laboratories and pharmacy students. The tools descend
-from desktop programs developed and used in the author's department since 1995; the present repository is a
-rewrite as a single open-source web application and library.
+PTCalc is intended for formulation scientists, analytical laboratories and pharmacy students.
 
 # State of the field
 
@@ -136,14 +133,15 @@ PTCalc continues desktop tools that have been used in the author's department fo
 phase-diagram work since 1995, including published studies on erodible tablets [@Karasulu2000]. The
 dissolution-kinetics and IVIVC program from which the kinetic engine descends was presented in 2001
 [@Ege2001] and is cited in at least six papers from 2003 to 2024. The
-phase-diagram analysis program from which the ternary tool descends was presented in 2004 [@Ege2004]; we have
+phase-diagram analysis program from which the ternary tool descends was presented in 2004 [@Ege2004]; the author has
 found at least seven peer-reviewed papers from 2007 to 2026 that cite it or name it as the software used to
 draw their pseudo-ternary diagrams, for example in ocular [@UstundagOkur2014] and oral [@Ebrahimi2026]
 microemulsion formulation. The web
 application is publicly available without registration in English and Turkish, and its bilingual guides are
 written for teaching as well as for laboratory use. Each release is archived on Zenodo with a citable DOI, and
 the core library can be reused independently of the website, which makes analyses reproducible from the
-versioned source.
+versioned source. The present repository is a rewrite of these programs as a single open-source web
+application and library.
 
 # AI usage disclosure
 

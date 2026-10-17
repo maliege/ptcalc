@@ -129,5 +129,5 @@ Concept DOI for all versions (always resolves to the latest):
 
 Code is released under the [MIT licence](LICENSE). Third-party components and data licences (Handsontable
 non-commercial licence, Chart.js, DDSolver example data used only in tests) are listed in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Guide texts are outside the MIT scope; copyright
-Mehmet Ali Ege.
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Site content (guides, substance information texts) is
+copyright Mehmet Ali Ege and is not covered by the MIT licence unless stated.

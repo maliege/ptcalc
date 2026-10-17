@@ -4,6 +4,9 @@ Depodaki özgün kod MIT lisansıyla dağıtılır (bkz. [LICENSE](LICENSE)). A�
 lisanslarıyla kullanılır; hiçbiri bu depoda değiştirilmiş biçimde yeniden dağıtılmaz (NuGet paketi
 ya da CDN üzerinden çalışma anında yüklenir), veri dosyaları hariç.
 
+Site içeriği (rehberler, madde bilgi metinleri) Mehmet Ali Ege'ye aittir ve aksi belirtilmedikçe MIT
+lisansının kapsamında değildir.
+
 ## .NET paketleri (NuGet)
 
 | Paket | Sürüm | Lisans | Kullanım |

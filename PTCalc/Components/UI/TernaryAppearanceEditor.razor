@@ -103,10 +103,16 @@
         --bs-table-bg: transparent;
     }
 
+        /* Temanın .table th kuralı başlık hücrelerine vurgu zemini verir; özellik listesinde zemin yok */
+        .prop-grid th,
+        .prop-grid td {
+            background: transparent;
+        }
+
         .prop-grid th[scope=row] {
             font-weight: 400;
             width: 50%;
-            color: var(--text-secondary, inherit);
+            color: var(--text-secondary, var(--text-primary));
         }
 
         .prop-grid th[scope=row] label {

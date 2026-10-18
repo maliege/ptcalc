@@ -494,6 +494,16 @@
         max-height: max(340px, calc(100vh - 10rem));
     }
 
+        /* Çizgi kalınlığı ekran pikseli: diyagram büyüdükçe (FHD tam ekranda ~2 kat) kalınlaşmasın,
+           yakınlaştırma önizlemesinde de değişmesin. Yalnız ekran için; indirilen SVG'de CSS yok,
+           kalınlıklar orada SVG birimidir (500 birim genişlikte aynı görünür). */
+        .diagram-svg line,
+        .diagram-svg polygon,
+        .diagram-svg path,
+        .diagram-svg circle {
+            vector-effect: non-scaling-stroke;
+        }
+
     .diagram-wrap {
         position: relative;
     }
@@ -1296,9 +1306,9 @@
                 double x1 = ToSvgX(aVal), y1 = ToSvgY(bVal), tickX = ToSvgX(aVal - 0.02);
                 if (f > 1e-6 && f < 1 - 1e-6)
                 {
-                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - aVal))" y2="@F(y1)" stroke="#ef4444" stroke-width="0.5" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - aVal))" y2="@F(y1)" stroke="#ef4444" stroke-width="1" opacity="0.25" />
                 }
-                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(y1)" stroke="#ef4444" stroke-width="1.5" />
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(y1)" stroke="#ef4444" stroke-width="1.2" />
                 SvgText(__builder, tickX - 3, y1 + 4, "end", 12, null, "#ef4444", null, FormatPct(v));
             }
             @foreach (var (v, g) in TernaryRange.Ticks(range.SurfMin, range.Side, tickStep))
@@ -1308,9 +1318,9 @@
                 double tickX = ToSvgX(1 - aVal + 0.02 * Cos60), tickY = ToSvgY(bVal + 0.02 * Sin60);
                 if (g > 1e-6 && g < 1 - 1e-6)
                 {
-                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - i))" y2="@F(ToSvgY(0))" stroke="#22c55e" stroke-width="0.5" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - i))" y2="@F(ToSvgY(0))" stroke="#22c55e" stroke-width="1" opacity="0.25" />
                 }
-                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#22c55e" stroke-width="1.5" />
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#22c55e" stroke-width="1.2" />
                 SvgText(__builder, tickX + 4, tickY + 4, "start", 12, null, "#22c55e", null, FormatPct(v));
             }
             @foreach (var (v, h) in TernaryRange.Ticks(range.WaterMin, range.Side, tickStep))
@@ -1320,15 +1330,15 @@
                 double tickX = ToSvgX(i + 0.02 * Cos60), tickY = ToSvgY(-0.02);
                 if (h > 1e-6 && h < 1 - 1e-6)
                 {
-                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(i * Cos60))" y2="@F(ToSvgY(i * Sin60))" stroke="#3b82f6" stroke-width="0.5" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(i * Cos60))" y2="@F(ToSvgY(i * Sin60))" stroke="#3b82f6" stroke-width="1" opacity="0.25" />
                 }
-                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#3b82f6" stroke-width="1.5" />
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#3b82f6" stroke-width="1.2" />
                 SvgText(__builder, tickX, tickY + 13, "middle", 12, null, "#3b82f6", null, FormatPct(v));
             }
 
-            <line x1="@F(ToSvgX(0))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(1))" y2="@F(ToSvgY(0))" stroke="#3b82f6" stroke-width="2.5" />
-            <line x1="@F(ToSvgX(1))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(0.5))" y2="@F(ToSvgY(Sin60))" stroke="#22c55e" stroke-width="2.5" />
-            <line x1="@F(ToSvgX(0.5))" y1="@F(ToSvgY(Sin60))" x2="@F(ToSvgX(0))" y2="@F(ToSvgY(0))" stroke="#ef4444" stroke-width="2.5" />
+            <line x1="@F(ToSvgX(0))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(1))" y2="@F(ToSvgY(0))" stroke="#3b82f6" stroke-width="2" />
+            <line x1="@F(ToSvgX(1))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(0.5))" y2="@F(ToSvgY(Sin60))" stroke="#22c55e" stroke-width="2" />
+            <line x1="@F(ToSvgX(0.5))" y1="@F(ToSvgY(Sin60))" x2="@F(ToSvgX(0))" y2="@F(ToSvgY(0))" stroke="#ef4444" stroke-width="2" />
 
             <g clip-path="url(#contentClip)"><g class="ternary-pan">
             @* Faz bölgeleri (≥3 nokta). Seçili grup: kalın + kesikli kenar. *@
@@ -1406,7 +1416,7 @@
             @foreach (var group in resultGroups.Where(g => g.PolygonCenterD != null && Visible(g.PolygonCenterD)))
             {
                 var (cx, cy) = Map(group.PolygonCenterD!);
-                <circle cx="@F(cx)" cy="@F(cy)" r="5" fill="red" stroke="white" stroke-width="1.5" />
+                <circle cx="@F(cx)" cy="@F(cy)" r="5" fill="red" stroke="white" stroke-width="1.2" />
             }
             </g></g>
 

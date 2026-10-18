@@ -33,9 +33,18 @@ Work in progress lives on the `dev` branch; `main` is what runs on https://ptcal
 
 - Phase diagram: the chart grows with the column width and fits the window height instead of a fixed 450 px;
   tick labels and axis titles are larger; the gradient fill is computed for the visible region.
+- Phase diagram: line widths are screen pixels and no longer grow with the chart (on a full-HD screen the axes
+  were about 5 px wide). Axes are 2 px and ticks 1.2 px, close to the earlier desktop program; the default
+  region outline stays 2 px. The downloaded SVG keeps the widths in SVG units.
 - Calibration curve: in the residual plot each residual is drawn as a vertical line from zero, so the sign and
   size of the deviation can be read at each concentration level.
 - Changes under `paper/` no longer trigger a redeployment of the web site.
+
+### Security
+
+- `System.Security.Cryptography.Pkcs`, pulled in by MailKit/MimeKit for the contact form, is pinned to 10.0.13
+  (GHSA-846f-f764-76mx, GHSA-2fmv-rv2c-59x7; denial of service when parsing attacker-supplied CMS data, which
+  PTCalc does not do).
 
 ## [1.1.0] - 2026-09-25
 

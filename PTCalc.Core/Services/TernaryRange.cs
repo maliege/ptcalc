@@ -85,7 +85,8 @@ public readonly record struct TernaryRange(double OilMin, double SurfMin, double
         double first = Math.Ceiling((min - 1e-6) / step) * step;
         for (double v = first; v <= min + side + 1e-6; v += step)
         {
-            double value = Math.Round(v, 6);
+            // + 0.0: Ceiling(−1e-7) negatif sıfır verir, etiket "-0" yazılmasın
+            double value = Math.Round(v, 6) + 0.0;
             list.Add((value, Math.Clamp((value - min) / side, 0, 1)));
         }
         return list;

@@ -106,6 +106,8 @@ public class TernaryRangeTests
 
         var full = TernaryRange.Ticks(0, 100, 10);
         Assert.Equal(11, full.Count);
+        Assert.False(double.IsNegative(full[0].Value));          // "-0" etiketi çıkmasın
+        Assert.Equal("0", full[0].Value.ToString("0.#"));
         Assert.Equal(0, full[0].Fraction);
         Assert.Equal(1, full[^1].Fraction);
     }

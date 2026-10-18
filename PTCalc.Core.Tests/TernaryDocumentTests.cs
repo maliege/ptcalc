@@ -79,4 +79,50 @@ public class TernaryDocumentTests
         Assert.Equal(0.0, e.StrokeOpacity);
         Assert.Equal(GroupStyles.DefaultStrokeWidth, e.StrokeWidth);
     }
+
+    [Fact]
+    public void Appearance_round_trips_and_older_documents_get_defaults()
+    {
+        var doc = new TernaryDocument();
+        doc.Settings.Appearance = new TernaryAppearance
+        {
+            FontFamily = "Times New Roman", Background = "white", TitleColor = "#112233",
+            OilColor = "#aa0000", TickLabelSize = 14, GridStyle = "dashed", ShowCentroid = false
+        };
+        var json = doc.ToJson();
+        Assert.DoesNotContain("fontStack", json);                    // hesaplanan özellikler yazılmaz
+        Assert.DoesNotContain("gridDashArray", json);
+
+        var back = TernaryDocument.FromJson(json)!.Settings.Appearance;
+        Assert.Equal(doc.Settings.Appearance, back);                  // record: değer eşitliği
+        Assert.Equal("'Times New Roman', Times, serif", back.FontStack);
+        Assert.Equal("4 3", back.GridDashArray);
+
+        var old = TernaryDocument.FromJson("""{ "version": 1, "rows": [], "settings": { "chartTitle": "Eski" } }""");
+        Assert.Equal(new TernaryAppearance(), old!.Settings.Appearance);
+    }
+
+    [Fact]
+    public void Appearance_normalization_clamps_and_rejects_bad_values()
+    {
+        var a = new TernaryAppearance
+        {
+            FontFamily = "Comic Sans", Background = "pink", TitleSize = 400, TickLabelSize = -3,
+            AxisWidth = double.NaN, GridOpacity = 250, GridStyle = "wavy",
+            OilColor = "red", TitleColor = "#zzzzzz", PointStrokeColor = "#ABCDEF"
+        }.Normalized();
+        var d = new TernaryAppearance();
+
+        Assert.Equal(d.FontFamily, a.FontFamily);
+        Assert.Equal(d.Background, a.Background);
+        Assert.Equal(TernaryAppearance.Limits.TitleSize.Max, a.TitleSize);
+        Assert.Equal(TernaryAppearance.Limits.TickLabelSize.Min, a.TickLabelSize);
+        Assert.Equal(d.AxisWidth, a.AxisWidth);
+        Assert.Equal(100, a.GridOpacity);
+        Assert.Equal(d.GridStyle, a.GridStyle);
+        Assert.Equal(d.OilColor, a.OilColor);
+        Assert.Null(a.TitleColor);                                    // geçersiz → tema rengi
+        Assert.Equal("#abcdef", a.PointStrokeColor);
+        Assert.Equal(d, d.Normalized());                              // varsayılanlar zaten geçerli
+    }
 }

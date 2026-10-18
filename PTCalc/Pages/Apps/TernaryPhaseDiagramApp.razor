@@ -110,7 +110,9 @@
                             <input type="text" class="form-control" @bind="titleWater" @bind:after="AutosaveAsync" />
                         </div>
                         <hr />
-
+                        <label class="form-label">@L["Görünüm"]</label>
+                        <TernaryAppearanceEditor Value="ap" ValueChanged="OnAppearanceChangedAsync"
+                                                 OilTitle="@titleOil" SurfTitle="@titleSurfactant" WaterTitle="@titleWater" />
                     </div>
 
                     <div class="tab-pane fade" id="chart-settings" role="tabpanel" aria-labelledby="chart-tab">
@@ -133,7 +135,7 @@
                                 {
                                     var axis = ax;
                                     <div class="col-4">
-                                        <label class="form-label small mb-1 text-truncate d-block" style="color:@AxisColors[axis]" for="rangeMin@(axis)">@AxisTitle(axis)</label>
+                                        <label class="form-label small mb-1 text-truncate d-block" style="color:@AxisColor(axis)" for="rangeMin@(axis)">@AxisTitle(axis)</label>
                                         <input type="number" class="form-control form-control-sm" id="rangeMin@(axis)" min="0" max="95" step="1"
                                                value="@F(rangeInputs[axis])" @onchange="e => OnRangeInputAsync(axis, e.Value)" />
                                     </div>
@@ -279,9 +281,9 @@
                         @* Sayıları JS yazar (imleç altındaki bileşim); Blazor yalnız eksen adlarını çizer. *@
                         <div class="zoom-hint" aria-hidden="true"></div>
                         <div class="zoom-readout" aria-hidden="true">
-                            <span style="color:#ef4444">@titleOil <b data-ro="oil"></b></span>
-                            <span style="color:#22c55e">@titleSurfactant <b data-ro="surf"></b></span>
-                            <span style="color:#3b82f6">@titleWater <b data-ro="water"></b></span>
+                            <span style="color:@ap.OilColor">@titleOil <b data-ro="oil"></b></span>
+                            <span style="color:@ap.SurfColor">@titleSurfactant <b data-ro="surf"></b></span>
+                            <span style="color:@ap.WaterColor">@titleWater <b data-ro="water"></b></span>
                         </div>
                     </div>
 
@@ -581,6 +583,18 @@
             opacity: 0.95;
         }
 
+        .diagram-svg.bg-white {
+            background: #fff;
+        }
+
+            .diagram-svg.bg-white .svg-bg {
+                fill: #fff;
+            }
+
+        .diagram-svg.bg-transparent {
+            background: transparent;
+        }
+
         .diagram-svg .svg-bg {
             fill: var(--bg-primary);
         }
@@ -662,7 +676,9 @@
     private string? rangeError;
     private const double ZoomStep = 1.5;
     private DotNetObjectReference<TernaryPhaseDiagramApp>? selfRef;
-    private static readonly string[] AxisColors = ["#ef4444", "#22c55e", "#3b82f6"];
+
+    // Görünüş özellikleri (Diyagram sekmesindeki özellik listesi)
+    private TernaryAppearance ap = new();
     private int borderAlpha = 180;
     private int fillAlpha = 80;
 
@@ -831,7 +847,8 @@
             BorderAlpha = borderAlpha, FillAlpha = fillAlpha,
             SmoothEdges = smoothEdges, SmoothTension = smoothTension,
             ShowGradientFill = showGradientFill, GradientOpacity = gradientOpacity,
-            OilMin = range.OilMin, SurfMin = range.SurfMin, WaterMin = range.WaterMin
+            OilMin = range.OilMin, SurfMin = range.SurfMin, WaterMin = range.WaterMin,
+            Appearance = ap
         },
         Styles = new Dictionary<string, GroupStyle>(groupStyles, StringComparer.OrdinalIgnoreCase)
     };
@@ -849,7 +866,41 @@
         showGradientFill = s.ShowGradientFill;
         gradientOpacity = Math.Clamp(s.GradientOpacity, 10, 100);
         SetRange(TernaryRange.Sanitize(s.OilMin, s.SurfMin, s.WaterMin));
+        ap = (s.Appearance ?? new()).Normalized();
     }
+
+    private async Task OnAppearanceChangedAsync(TernaryAppearance a)
+    {
+        ap = a;
+        await AutosaveAsync();
+    }
+
+    private string AxisColor(int axis) => axis switch { 0 => ap.OilColor, 1 => ap.SurfColor, _ => ap.WaterColor };
+
+    // ----- Yazı yerleşimi: yazı boyutu ve tick uzunluğu değişince etiketler tick'e, başlıklar etiketlere göre kayar -----
+
+    /// <summary>Tick boyu, çerçeve kenarına oranla (SVG biriminden).</summary>
+    private double TickFrac => ap.TickLength / TriangleSide;
+
+    /// <summary>Su ekseni etiketinin taban çizgisi, alt kenardan aşağı (SVG birimi).</summary>
+    private double WaterLabelDrop => ap.TickLength + 0.85 * ap.TickLabelSize + 2;
+
+    /// <summary>Water başlığının taban çizgisi, alt kenardan aşağı.</summary>
+    private double WaterTitleDrop => WaterLabelDrop + 0.25 * ap.TickLabelSize + 6 + 0.8 * ap.AxisTitleSize;
+
+    /// <summary>Oil/Surfactant başlığının kenar ortasından yatay uzaklığı: tick + iki haneli etiket + başlığın yarı yüksekliği.</summary>
+    private double SideTitleOffset => ap.TickLength + 3 + 1.2 * ap.TickLabelSize + ap.AxisTitleSize / 2 / Sin60 + 3;
+
+    /// <summary>Çizim alanı yüksekliği: büyük yazılarda Water başlığı sığsın diye uzar (genişlik 500 sabit).</summary>
+    private double ViewHeight => Math.Max(SvgHeight, Math.Ceiling(LeftY + WaterTitleDrop + 0.3 * ap.AxisTitleSize + 4));
+
+    /// <summary>Zemin seçimi sınıfla: indirmede zemin rengi hesaplanmış stilden alınır (beyaz/şeffaf da doğru çıkar).</summary>
+    private string SvgClass => ap.Background switch
+    {
+        "white" => "diagram-svg bg-white",
+        "transparent" => "diagram-svg bg-transparent",
+        _ => "diagram-svg"
+    };
 
     // ================= Görünen bölge =================
 
@@ -1181,14 +1232,14 @@
     /// (RZ1023); bu yüzden metinler RenderTreeBuilder ile üretilir.
     /// </summary>
     /// <paramref name="rotate"/>: (x, y) çevresinde döndürme açısı.
-    private void SvgText(RenderTreeBuilder b, double x, double y, string anchor, int fontSize,
+    private void SvgText(RenderTreeBuilder b, double x, double y, string anchor, double fontSize,
                          string? fontWeight, string? fill, string? cssClass, string content, int? rotate = null)
     {
         b.OpenElement(0, "text");
         b.AddAttribute(1, "x", F(x));
         b.AddAttribute(2, "y", F(y));
         b.AddAttribute(3, "text-anchor", anchor);
-        b.AddAttribute(4, "font-size", fontSize.ToString(CultureInfo.InvariantCulture));
+        b.AddAttribute(4, "font-size", F(fontSize));
         if (fontWeight is not null) b.AddAttribute(5, "font-weight", fontWeight);
         if (fill is not null) b.AddAttribute(6, "fill", fill);
         if (cssClass is not null) b.AddAttribute(7, "class", cssClass);
@@ -1261,7 +1312,8 @@
         double tickStep = TernaryRange.NiceStep(range.Side, axisInterval);
         var trianglePoints = $"{F(TopX)},{F(TopY)} {F(LeftX)},{F(LeftY)} {F(RightX)},{F(RightY)}";
 
-        <svg id="@SvgElementId" viewBox="0 0 @F(SvgWidth) @F(SvgHeight)" class="diagram-svg" style="color-scheme: light dark;"
+        <svg id="@SvgElementId" viewBox="0 0 @F(SvgWidth) @F(ViewHeight)" class="@SvgClass"
+             style="color-scheme: light dark; aspect-ratio: @F(SvgWidth) / @F(ViewHeight);" font-family="@ap.FontStack"
              data-range="@($"{F(range.OilMin)} {F(range.SurfMin)} {F(range.WaterMin)}")"
              @onclick="ClearSelection">
             @* İçerik üç katmanda: dışta dönüşümsüz kırpma grubu, içte ternary-pan. Tekerlek/sürükleme
@@ -1280,7 +1332,7 @@
                 </clipPath>
             </defs>
 
-            @if (!showGradientFill)
+            @if (!showGradientFill && ap.Background != "transparent")
             {
                 <polygon class="svg-bg" points="@trianglePoints" stroke="none" />
             }
@@ -1303,42 +1355,42 @@
             @foreach (var (v, f) in TernaryRange.Ticks(range.OilMin, range.Side, tickStep))
             {
                 double aVal = f * Cos60, bVal = f * Sin60;
-                double x1 = ToSvgX(aVal), y1 = ToSvgY(bVal), tickX = ToSvgX(aVal - 0.02);
-                if (f > 1e-6 && f < 1 - 1e-6)
+                double x1 = ToSvgX(aVal), y1 = ToSvgY(bVal), tickX = ToSvgX(aVal - TickFrac);
+                if (ap.ShowGrid && f > 1e-6 && f < 1 - 1e-6)
                 {
-                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - aVal))" y2="@F(y1)" stroke="#ef4444" stroke-width="1" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - aVal))" y2="@F(y1)" stroke="@ap.OilColor" stroke-width="@F(ap.GridWidth)" opacity="@F(ap.GridOpacity / 100.0)" stroke-dasharray="@ap.GridDashArray" />
                 }
-                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(y1)" stroke="#ef4444" stroke-width="1.2" />
-                SvgText(__builder, tickX - 3, y1 + 4, "end", 12, null, "#ef4444", null, FormatPct(v));
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(y1)" stroke="@ap.OilColor" stroke-width="@F(ap.TickWidth)" />
+                SvgText(__builder, tickX - 3, y1 + 0.35 * ap.TickLabelSize, "end", ap.TickLabelSize, null, ap.OilColor, null, FormatPct(v));
             }
             @foreach (var (v, g) in TernaryRange.Ticks(range.SurfMin, range.Side, tickStep))
             {
                 double i = 1 - g, aVal = i * Cos60, bVal = i * Sin60;
                 double x1 = ToSvgX(1 - aVal), y1 = ToSvgY(bVal);
-                double tickX = ToSvgX(1 - aVal + 0.02 * Cos60), tickY = ToSvgY(bVal + 0.02 * Sin60);
-                if (g > 1e-6 && g < 1 - 1e-6)
+                double tickX = ToSvgX(1 - aVal + TickFrac * Cos60), tickY = ToSvgY(bVal + TickFrac * Sin60);
+                if (ap.ShowGrid && g > 1e-6 && g < 1 - 1e-6)
                 {
-                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - i))" y2="@F(ToSvgY(0))" stroke="#22c55e" stroke-width="1" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(1 - i))" y2="@F(ToSvgY(0))" stroke="@ap.SurfColor" stroke-width="@F(ap.GridWidth)" opacity="@F(ap.GridOpacity / 100.0)" stroke-dasharray="@ap.GridDashArray" />
                 }
-                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#22c55e" stroke-width="1.2" />
-                SvgText(__builder, tickX + 4, tickY + 4, "start", 12, null, "#22c55e", null, FormatPct(v));
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="@ap.SurfColor" stroke-width="@F(ap.TickWidth)" />
+                SvgText(__builder, tickX + 4, tickY + 0.35 * ap.TickLabelSize, "start", ap.TickLabelSize, null, ap.SurfColor, null, FormatPct(v));
             }
             @foreach (var (v, h) in TernaryRange.Ticks(range.WaterMin, range.Side, tickStep))
             {
                 double i = 1 - h;
                 double x1 = ToSvgX(i), y1 = ToSvgY(0);
-                double tickX = ToSvgX(i + 0.02 * Cos60), tickY = ToSvgY(-0.02);
-                if (h > 1e-6 && h < 1 - 1e-6)
+                double tickX = ToSvgX(i + TickFrac * Cos60), tickY = ToSvgY(-TickFrac);
+                if (ap.ShowGrid && h > 1e-6 && h < 1 - 1e-6)
                 {
-                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(i * Cos60))" y2="@F(ToSvgY(i * Sin60))" stroke="#3b82f6" stroke-width="1" opacity="0.25" />
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(ToSvgX(i * Cos60))" y2="@F(ToSvgY(i * Sin60))" stroke="@ap.WaterColor" stroke-width="@F(ap.GridWidth)" opacity="@F(ap.GridOpacity / 100.0)" stroke-dasharray="@ap.GridDashArray" />
                 }
-                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="#3b82f6" stroke-width="1.2" />
-                SvgText(__builder, tickX, tickY + 13, "middle", 12, null, "#3b82f6", null, FormatPct(v));
+                <line x1="@F(x1)" y1="@F(y1)" x2="@F(tickX)" y2="@F(tickY)" stroke="@ap.WaterColor" stroke-width="@F(ap.TickWidth)" />
+                SvgText(__builder, tickX, ToSvgY(0) + WaterLabelDrop, "middle", ap.TickLabelSize, null, ap.WaterColor, null, FormatPct(v));
             }
 
-            <line x1="@F(ToSvgX(0))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(1))" y2="@F(ToSvgY(0))" stroke="#3b82f6" stroke-width="2" />
-            <line x1="@F(ToSvgX(1))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(0.5))" y2="@F(ToSvgY(Sin60))" stroke="#22c55e" stroke-width="2" />
-            <line x1="@F(ToSvgX(0.5))" y1="@F(ToSvgY(Sin60))" x2="@F(ToSvgX(0))" y2="@F(ToSvgY(0))" stroke="#ef4444" stroke-width="2" />
+            <line x1="@F(ToSvgX(0))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(1))" y2="@F(ToSvgY(0))" stroke="@ap.WaterColor" stroke-width="@F(ap.AxisWidth)" />
+            <line x1="@F(ToSvgX(1))" y1="@F(ToSvgY(0))" x2="@F(ToSvgX(0.5))" y2="@F(ToSvgY(Sin60))" stroke="@ap.SurfColor" stroke-width="@F(ap.AxisWidth)" />
+            <line x1="@F(ToSvgX(0.5))" y1="@F(ToSvgY(Sin60))" x2="@F(ToSvgX(0))" y2="@F(ToSvgY(0))" stroke="@ap.OilColor" stroke-width="@F(ap.AxisWidth)" />
 
             <g clip-path="url(#contentClip)"><g class="ternary-pan">
             @* Faz bölgeleri (≥3 nokta). Seçili grup: kalın + kesikli kenar. *@
@@ -1407,32 +1459,36 @@
                 foreach (var p in grp.OrderBy(d => d.siraNo).Where(d => d.p != null && Visible(d.p)))
                 {
                     var (px, py) = Map(p.p!);
-                    <circle class="ternary-shape" cx="@F(px)" cy="@F(py)" r="4" fill="@color" stroke="white" stroke-width="1"
+                    <circle class="ternary-shape" cx="@F(px)" cy="@F(py)" r="@F(ap.PointRadius)" fill="@color" stroke="@ap.PointStrokeColor" stroke-width="@F(ap.PointStrokeWidth)"
                             @onclick="() => SelectGroup(groupNum)" @onclick:stopPropagation="true" />
                 }
             }
 
             @* Grup merkezleri *@
-            @foreach (var group in resultGroups.Where(g => g.PolygonCenterD != null && Visible(g.PolygonCenterD)))
+            @foreach (var group in resultGroups.Where(g => ap.ShowCentroid && g.PolygonCenterD != null && Visible(g.PolygonCenterD)))
             {
                 var (cx, cy) = Map(group.PolygonCenterD!);
-                <circle cx="@F(cx)" cy="@F(cy)" r="5" fill="red" stroke="white" stroke-width="1.2" />
+                <circle cx="@F(cx)" cy="@F(cy)" r="@F(ap.CentroidRadius)" fill="@ap.CentroidColor" stroke="white" stroke-width="1.2" />
             }
             </g></g>
 
             @if (!string.IsNullOrWhiteSpace(chartTitle))
             {
-                SvgText(__builder, SvgWidth / 2, 20, "middle", 18, "bold", null, "svg-title", chartTitle);
+                // Renk otomatikse: beyaz zeminde koyu gri, yoksa temanın yazı rengi (svg-title sınıfı)
+                var titleFill = ap.TitleColor ?? (ap.Background == "white" ? "#1f2937" : null);
+                SvgText(__builder, SvgWidth / 2, ap.TitleSize + 2, "middle", ap.TitleSize, ap.TitleBold ? "bold" : null, titleFill,
+                        titleFill is null ? "svg-title" : null, chartTitle);
             }
 
             @{
                 double midY = ToSvgY(0.5 * Sin60);
-                double oilLabelX = ToSvgX(0.5 * Cos60 - 0.095), surfLabelX = ToSvgX(1 - 0.5 * Cos60 + 0.095);
+                double oilLabelX = ToSvgX(0.5 * Cos60) - SideTitleOffset, surfLabelX = ToSvgX(1 - 0.5 * Cos60) + SideTitleOffset;
+                string? axisWeight = ap.AxisTitleBold ? "bold" : null;
             }
             @{
-                SvgText(__builder, oilLabelX, midY, "middle", 16, "bold", "#ef4444", null, titleOil, -60);
-                SvgText(__builder, surfLabelX, midY, "middle", 16, "bold", "#22c55e", null, titleSurfactant, 60);
-                SvgText(__builder, ToSvgX(0.5), ToSvgY(-0.12), "middle", 16, "bold", "#3b82f6", null, titleWater);
+                SvgText(__builder, oilLabelX, midY, "middle", ap.AxisTitleSize, axisWeight, ap.OilColor, null, titleOil, -60);
+                SvgText(__builder, surfLabelX, midY, "middle", ap.AxisTitleSize, axisWeight, ap.SurfColor, null, titleSurfactant, 60);
+                SvgText(__builder, ToSvgX(0.5), ToSvgY(0) + WaterTitleDrop, "middle", ap.AxisTitleSize, axisWeight, ap.WaterColor, null, titleWater);
             }
         </svg>
     };

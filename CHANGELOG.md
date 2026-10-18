@@ -27,6 +27,12 @@ Work in progress lives on the `dev` branch; `main` is what runs on https://ptcal
   - The visible region is saved in the browser and in the `.json` work file, and "Download SVG" exports the
     diagram as shown, so a partial ternary diagram can be used directly in a publication.
 - Composition read-out (Oil / Surfactant / Water, %) under the cursor on the phase diagram.
+- **Phase diagram appearance list** on the Diagram tab: font (system, Arial, Times New Roman, Georgia),
+  background (page theme, white, transparent), title size / weight / colour, a colour per axis (line, ticks,
+  labels, title and grid), axis title and tick label sizes, axis and tick widths, tick length, grid on/off,
+  width, opacity and style (solid, dashed, dotted), data point radius and outline, centroid on/off, radius and
+  colour. Values are clamped so that texts stay inside the drawing, which grows in height for large fonts;
+  the settings are saved with the work and the downloaded SVG uses them (`TernaryAppearance` in `PTCalc.Core`).
 - `TernaryRange` in `PTCalc.Core` (mapping, ticks, zoom about a point, fit to data) with unit tests.
 
 ### Changed

@@ -89,6 +89,129 @@ public sealed class TernarySettings
     public double OilMin { get; set; }
     public double SurfMin { get; set; }
     public double WaterMin { get; set; }
+
+    /// <summary>Yazı, renk ve çizgi özellikleri. Alanı olmayan eski belgeler varsayılanlarla açılır.</summary>
+    public TernaryAppearance Appearance { get; set; } = new();
+}
+
+/// <summary>
+/// Diyagramın görünüş özellikleri (özellik listesinden düzenlenir). Uzunluklar SVG birimidir (üçgen kenarı 400,
+/// çizim alanı 500 genişlik); çizgi kalınlıkları ekranda piksel, indirilen SVG'de SVG birimidir. Her eksenin rengi
+/// o eksenin çizgisi, tick'leri, etiketleri, başlığı ve grid'inde kullanılır. Değerler çizimden önce
+/// <see cref="Normalized"/> ile izin verilen aralığa çekilir; aralıklar yazıların çizim alanından taşmayacağı
+/// biçimde seçildi.
+/// </summary>
+public sealed record TernaryAppearance
+{
+    /// <summary>Yazı tipi anahtarları → CSS font-family yığını (indirilen SVG'de de geçerli).</summary>
+    public static readonly IReadOnlyDictionary<string, string> Fonts = new Dictionary<string, string>
+    {
+        ["sans-serif"] = "sans-serif",
+        ["Arial"] = "Arial, Helvetica, sans-serif",
+        ["Times New Roman"] = "'Times New Roman', Times, serif",
+        ["Georgia"] = "Georgia, serif",
+    };
+
+    /// <summary>theme: sayfa temasının zemini; white: beyaz (yayın için); transparent: zeminsiz.</summary>
+    public static readonly IReadOnlyList<string> Backgrounds = ["theme", "white", "transparent"];
+
+    /// <summary>Grid çizgi stilleri → SVG stroke-dasharray (düz için null).</summary>
+    public static readonly IReadOnlyDictionary<string, string?> GridStyles = new Dictionary<string, string?>
+    {
+        ["solid"] = null,
+        ["dashed"] = "4 3",
+        ["dotted"] = "1 2",
+    };
+
+    // Genel
+    public string FontFamily { get; set; } = "sans-serif";
+    public string Background { get; set; } = "theme";
+
+    // Başlık. Renk null → temanın yazı rengi (beyaz zeminde koyu gri).
+    public double TitleSize { get; set; } = 18;
+    public bool TitleBold { get; set; } = true;
+    public string? TitleColor { get; set; }
+
+    // Eksen renkleri
+    public string OilColor { get; set; } = "#ef4444";
+    public string SurfColor { get; set; } = "#22c55e";
+    public string WaterColor { get; set; } = "#3b82f6";
+
+    // Yazılar
+    public double AxisTitleSize { get; set; } = 16;
+    public bool AxisTitleBold { get; set; } = true;
+    public double TickLabelSize { get; set; } = 12;
+
+    // Çizgiler
+    public double AxisWidth { get; set; } = 2;
+    public double TickWidth { get; set; } = 1.2;
+    public double TickLength { get; set; } = 8;
+    public bool ShowGrid { get; set; } = true;
+    public double GridWidth { get; set; } = 1;
+    public int GridOpacity { get; set; } = 25;
+    public string GridStyle { get; set; } = "solid";
+
+    // Veri noktaları (dolgu grubun kenar rengidir) ve ağırlık merkezi
+    public double PointRadius { get; set; } = 4;
+    public string PointStrokeColor { get; set; } = "#ffffff";
+    public double PointStrokeWidth { get; set; } = 1;
+    public bool ShowCentroid { get; set; } = true;
+    public double CentroidRadius { get; set; } = 5;
+    public string CentroidColor { get; set; } = "#ff0000";
+
+    /// <summary>Özellik listesindeki sayı alanlarının aralıkları (en küçük, en büyük, adım).</summary>
+    public static class Limits
+    {
+        public static readonly (double Min, double Max, double Step) TitleSize = (8, 28, 1);
+        public static readonly (double Min, double Max, double Step) AxisTitleSize = (8, 24, 1);
+        public static readonly (double Min, double Max, double Step) TickLabelSize = (6, 18, 1);
+        public static readonly (double Min, double Max, double Step) AxisWidth = (0.5, 6, 0.5);
+        public static readonly (double Min, double Max, double Step) TickWidth = (0.5, 4, 0.1);
+        public static readonly (double Min, double Max, double Step) TickLength = (0, 12, 1);
+        public static readonly (double Min, double Max, double Step) GridWidth = (0.25, 4, 0.25);
+        public static readonly (double Min, double Max, double Step) GridOpacity = (0, 100, 5);
+        public static readonly (double Min, double Max, double Step) PointRadius = (1, 10, 0.5);
+        public static readonly (double Min, double Max, double Step) PointStrokeWidth = (0, 4, 0.5);
+        public static readonly (double Min, double Max, double Step) CentroidRadius = (1, 12, 0.5);
+    }
+
+    /// <summary>Geçersiz renk, yazı tipi ya da stil varsayılana; sayılar izin verilen aralığa çekilir.</summary>
+    public TernaryAppearance Normalized()
+    {
+        var d = new TernaryAppearance();
+        static double C(double v, (double Min, double Max, double Step) l, double fallback)
+            => double.IsFinite(v) ? Math.Clamp(v, l.Min, l.Max) : fallback;
+
+        return this with
+        {
+            FontFamily = FontFamily is not null && Fonts.ContainsKey(FontFamily) ? FontFamily : d.FontFamily,
+            Background = Background is not null && Backgrounds.Contains(Background) ? Background : d.Background,
+            TitleSize = C(TitleSize, Limits.TitleSize, d.TitleSize),
+            TitleColor = GroupStyles.ValidHex(TitleColor),
+            OilColor = GroupStyles.ValidHex(OilColor) ?? d.OilColor,
+            SurfColor = GroupStyles.ValidHex(SurfColor) ?? d.SurfColor,
+            WaterColor = GroupStyles.ValidHex(WaterColor) ?? d.WaterColor,
+            AxisTitleSize = C(AxisTitleSize, Limits.AxisTitleSize, d.AxisTitleSize),
+            TickLabelSize = C(TickLabelSize, Limits.TickLabelSize, d.TickLabelSize),
+            AxisWidth = C(AxisWidth, Limits.AxisWidth, d.AxisWidth),
+            TickWidth = C(TickWidth, Limits.TickWidth, d.TickWidth),
+            TickLength = C(TickLength, Limits.TickLength, d.TickLength),
+            GridWidth = C(GridWidth, Limits.GridWidth, d.GridWidth),
+            GridOpacity = (int)C(GridOpacity, Limits.GridOpacity, d.GridOpacity),
+            GridStyle = GridStyle is not null && GridStyles.ContainsKey(GridStyle) ? GridStyle : d.GridStyle,
+            PointRadius = C(PointRadius, Limits.PointRadius, d.PointRadius),
+            PointStrokeColor = GroupStyles.ValidHex(PointStrokeColor) ?? d.PointStrokeColor,
+            PointStrokeWidth = C(PointStrokeWidth, Limits.PointStrokeWidth, d.PointStrokeWidth),
+            CentroidRadius = C(CentroidRadius, Limits.CentroidRadius, d.CentroidRadius),
+            CentroidColor = GroupStyles.ValidHex(CentroidColor) ?? d.CentroidColor,
+        };
+    }
+
+    [JsonIgnore]
+    public string FontStack => Fonts.TryGetValue(FontFamily, out var f) ? f : "sans-serif";
+
+    [JsonIgnore]
+    public string? GridDashArray => GridStyles.TryGetValue(GridStyle, out var g) ? g : null;
 }
 
 /// <summary>

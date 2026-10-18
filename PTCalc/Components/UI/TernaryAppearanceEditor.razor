@@ -1,0 +1,195 @@
+@using System.Globalization
+@using PTCalc.Core.Models
+@inject IStringLocalizer<SharedResource> L
+
+@* Üçgen diyagramın görünüş özellikleri: kategorili, iki sütunlu özellik listesi. Her değişiklik
+   TernaryAppearance.Normalized()'dan geçip ValueChanged ile sayfaya döner (sayfa çizer ve kaydeder). *@
+<table class="table table-sm align-middle prop-grid mb-2">
+    <tbody>
+        @Category(L["Genel"])
+        <tr>
+            <th scope="row"><label for="ap-font">@L["Yazı tipi"]</label></th>
+            <td>
+                <select id="ap-font" class="form-select form-select-sm" value="@Value.FontFamily"
+                        @onchange="e => SetAsync(a => a with { FontFamily = e.Value?.ToString() ?? string.Empty })">
+                    @foreach (var f in TernaryAppearance.Fonts.Keys)
+                    {
+                        <option value="@f">@(f == "sans-serif" ? L["Sistem yazı tipi"] : f)</option>
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="ap-bg">@L["Zemin"]</label></th>
+            <td>
+                <select id="ap-bg" class="form-select form-select-sm" value="@Value.Background"
+                        @onchange="e => SetAsync(a => a with { Background = e.Value?.ToString() ?? string.Empty })">
+                    <option value="theme">@L["Sayfa teması"]</option>
+                    <option value="white">@L["Beyaz"]</option>
+                    <option value="transparent">@L["Şeffaf"]</option>
+                </select>
+            </td>
+        </tr>
+
+        @Category(L["Başlık"])
+        @NumberRow("ap-title-size", L["Yazı boyutu"], Value.TitleSize, TernaryAppearance.Limits.TitleSize, (a, v) => a with { TitleSize = v })
+        @BoolRow("ap-title-bold", L["Kalın"], Value.TitleBold, (a, v) => a with { TitleBold = v })
+        <tr>
+            <th scope="row"><label for="ap-title-color">@L["Renk"]</label></th>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="color" id="ap-title-color" class="form-control form-control-sm form-control-color"
+                           value="@(Value.TitleColor ?? AutoTitleColor)" disabled="@(Value.TitleColor is null)"
+                           @onchange="e => SetAsync(a => a with { TitleColor = e.Value?.ToString() })" />
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="ap-title-auto" checked="@(Value.TitleColor is null)"
+                               @onchange="e => SetAsync(a => a with { TitleColor = e.Value is true ? null : AutoTitleColor })" />
+                        <label class="form-check-label small" for="ap-title-auto">@L["Otomatik"]</label>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        @Category(L["Eksenler"])
+        @ColorRow("ap-oil-color", L["{0} rengi", OilTitle], Value.OilColor, (a, v) => a with { OilColor = v })
+        @ColorRow("ap-surf-color", L["{0} rengi", SurfTitle], Value.SurfColor, (a, v) => a with { SurfColor = v })
+        @ColorRow("ap-water-color", L["{0} rengi", WaterTitle], Value.WaterColor, (a, v) => a with { WaterColor = v })
+        @NumberRow("ap-axis-width", L["Çizgi kalınlığı"], Value.AxisWidth, TernaryAppearance.Limits.AxisWidth, (a, v) => a with { AxisWidth = v }, "px")
+        @NumberRow("ap-axis-title-size", L["Eksen başlığı boyutu"], Value.AxisTitleSize, TernaryAppearance.Limits.AxisTitleSize, (a, v) => a with { AxisTitleSize = v })
+        @BoolRow("ap-axis-title-bold", L["Eksen başlıkları kalın"], Value.AxisTitleBold, (a, v) => a with { AxisTitleBold = v })
+        @NumberRow("ap-tick-size", L["Tick etiketi boyutu"], Value.TickLabelSize, TernaryAppearance.Limits.TickLabelSize, (a, v) => a with { TickLabelSize = v })
+        @NumberRow("ap-tick-width", L["Tick kalınlığı"], Value.TickWidth, TernaryAppearance.Limits.TickWidth, (a, v) => a with { TickWidth = v }, "px")
+        @NumberRow("ap-tick-length", L["Tick uzunluğu"], Value.TickLength, TernaryAppearance.Limits.TickLength, (a, v) => a with { TickLength = v })
+
+        @Category(L["Grid"])
+        @BoolRow("ap-grid-show", L["Göster"], Value.ShowGrid, (a, v) => a with { ShowGrid = v })
+        @NumberRow("ap-grid-width", L["Kalınlık"], Value.GridWidth, TernaryAppearance.Limits.GridWidth, (a, v) => a with { GridWidth = v }, "px")
+        @NumberRow("ap-grid-opacity", L["Opaklık"], Value.GridOpacity, TernaryAppearance.Limits.GridOpacity, (a, v) => a with { GridOpacity = (int)Math.Round(v) }, "%")
+        <tr>
+            <th scope="row"><label for="ap-grid-style">@L["Çizgi stili"]</label></th>
+            <td>
+                <select id="ap-grid-style" class="form-select form-select-sm" value="@Value.GridStyle"
+                        @onchange="e => SetAsync(a => a with { GridStyle = e.Value?.ToString() ?? string.Empty })">
+                    <option value="solid">@L["Düz"]</option>
+                    <option value="dashed">@L["Kesikli"]</option>
+                    <option value="dotted">@L["Noktalı"]</option>
+                </select>
+            </td>
+        </tr>
+
+        @Category(L["Veri noktaları"])
+        @NumberRow("ap-point-r", L["Yarıçap"], Value.PointRadius, TernaryAppearance.Limits.PointRadius, (a, v) => a with { PointRadius = v })
+        @ColorRow("ap-point-stroke", L["Kenar rengi"], Value.PointStrokeColor, (a, v) => a with { PointStrokeColor = v })
+        @NumberRow("ap-point-sw", L["Kenar kalınlığı"], Value.PointStrokeWidth, TernaryAppearance.Limits.PointStrokeWidth, (a, v) => a with { PointStrokeWidth = v }, "px")
+
+        @Category(L["Ağırlık merkezi"])
+        @BoolRow("ap-centroid-show", L["Göster"], Value.ShowCentroid, (a, v) => a with { ShowCentroid = v })
+        @NumberRow("ap-centroid-r", L["Yarıçap"], Value.CentroidRadius, TernaryAppearance.Limits.CentroidRadius, (a, v) => a with { CentroidRadius = v })
+        @ColorRow("ap-centroid-color", L["Renk"], Value.CentroidColor, (a, v) => a with { CentroidColor = v })
+    </tbody>
+</table>
+<div class="d-flex align-items-start gap-2">
+    <button class="btn btn-sm btn-outline-secondary text-nowrap" @onclick="ResetAsync" disabled="@(Value == new TernaryAppearance())">
+        <i class="bi bi-arrow-counterclockwise"></i> @L["Varsayılanlara dön"]
+    </button>
+    <small class="text-muted">
+        @L["Bölge renkleri ve opaklıkları için diyagramda gruba tıklayın. Çizgi kalınlıkları ekranda piksel, indirilen SVG'de SVG birimidir."]
+    </small>
+</div>
+
+<style>
+    .prop-grid {
+        font-size: 0.8rem;
+        --bs-table-bg: transparent;
+    }
+
+        .prop-grid th[scope=row] {
+            font-weight: 400;
+            width: 50%;
+            color: var(--text-secondary, inherit);
+        }
+
+        .prop-grid th[scope=row] label {
+            margin: 0;
+        }
+
+        .prop-grid .prop-cat th {
+            font-weight: 600;
+            padding-top: 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .prop-grid .form-control-color {
+            width: 3rem;
+            height: calc(1.5em + 0.5rem + 2px);
+            padding: 0.15rem;
+        }
+
+        .prop-grid .form-check-input {
+            margin-top: 0;
+        }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public TernaryAppearance Value { get; set; } = new();
+    [Parameter] public EventCallback<TernaryAppearance> ValueChanged { get; set; }
+
+    // Eksen adları satır etiketlerinde kullanılır ("Oil rengi").
+    [Parameter] public string OilTitle { get; set; } = "Oil";
+    [Parameter] public string SurfTitle { get; set; } = "Surfactant";
+    [Parameter] public string WaterTitle { get; set; } = "Water";
+
+    /// <summary>Otomatik başlık renginin seçicide gösterilen karşılığı (beyaz zeminde koyu gri).</summary>
+    private const string AutoTitleColor = "#1f2937";
+
+    private static string F(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private Task SetAsync(Func<TernaryAppearance, TernaryAppearance> change)
+        => ValueChanged.InvokeAsync(change(Value).Normalized());
+
+    private Task ResetAsync() => ValueChanged.InvokeAsync(new TernaryAppearance());
+
+    private Task OnNumberAsync(object? raw, Func<TernaryAppearance, double, TernaryAppearance> set)
+        => double.TryParse(raw?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v)
+            ? SetAsync(a => set(a, v))
+            : Task.CompletedTask;
+
+    private static RenderFragment Category(string title) => @<tr class="prop-cat"><th colspan="2">@title</th></tr>;
+
+    private RenderFragment NumberRow(string id, string label, double value, (double Min, double Max, double Step) lim,
+                                     Func<TernaryAppearance, double, TernaryAppearance> set, string? unit = null) =>
+        @<tr>
+            <th scope="row"><label for="@id">@label</label></th>
+            <td>
+                <div class="input-group input-group-sm">
+                    <input type="number" id="@id" class="form-control" min="@F(lim.Min)" max="@F(lim.Max)" step="@F(lim.Step)"
+                           value="@F(value)" @onchange="e => OnNumberAsync(e.Value, set)" />
+                    @if (unit is not null)
+                    {
+                        <span class="input-group-text">@unit</span>
+                    }
+                </div>
+            </td>
+        </tr>;
+
+    private RenderFragment ColorRow(string id, string label, string value, Func<TernaryAppearance, string, TernaryAppearance> set) =>
+        @<tr>
+            <th scope="row"><label for="@id">@label</label></th>
+            <td>
+                <input type="color" id="@id" class="form-control form-control-sm form-control-color" value="@value"
+                       @onchange="e => SetAsync(a => set(a, e.Value?.ToString() ?? string.Empty))" />
+            </td>
+        </tr>;
+
+    private RenderFragment BoolRow(string id, string label, bool value, Func<TernaryAppearance, bool, TernaryAppearance> set) =>
+        @<tr>
+            <th scope="row"><label for="@id">@label</label></th>
+            <td>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="@id" checked="@value"
+                           @onchange="e => SetAsync(a => set(a, e.Value is true))" />
+                </div>
+            </td>
+        </tr>;
+}

@@ -483,4 +483,37 @@
   <data name="Bir sayı girin." xml:space="preserve"><value>Enter a number.</value></data>
   <data name="Alt sınırlar negatif olamaz." xml:space="preserve"><value>Lower limits cannot be negative.</value></data>
   <data name="Alt sınırların toplamı en fazla {0} olabilir (görünen üçgenin kenarı en az {1} puan)." xml:space="preserve"><value>The lower limits may add up to at most {0} (the visible triangle needs a side of at least {1} points).</value></data>
+  <data name="Görünüm" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Genel" xml:space="preserve"><value>General</value></data>
+  <data name="Yazı tipi" xml:space="preserve"><value>Font</value></data>
+  <data name="Sistem yazı tipi" xml:space="preserve"><value>System font</value></data>
+  <data name="Zemin" xml:space="preserve"><value>Background</value></data>
+  <data name="Sayfa teması" xml:space="preserve"><value>Page theme</value></data>
+  <data name="Beyaz" xml:space="preserve"><value>White</value></data>
+  <data name="Şeffaf" xml:space="preserve"><value>Transparent</value></data>
+  <data name="Yazı boyutu" xml:space="preserve"><value>Font size</value></data>
+  <data name="Kalın" xml:space="preserve"><value>Bold</value></data>
+  <data name="Renk" xml:space="preserve"><value>Colour</value></data>
+  <data name="Otomatik" xml:space="preserve"><value>Automatic</value></data>
+  <data name="Eksenler" xml:space="preserve"><value>Axes</value></data>
+  <data name="{0} rengi" xml:space="preserve"><value>{0} colour</value></data>
+  <data name="Çizgi kalınlığı" xml:space="preserve"><value>Line width</value></data>
+  <data name="Eksen başlığı boyutu" xml:space="preserve"><value>Axis title size</value></data>
+  <data name="Eksen başlıkları kalın" xml:space="preserve"><value>Bold axis titles</value></data>
+  <data name="Tick etiketi boyutu" xml:space="preserve"><value>Tick label size</value></data>
+  <data name="Tick kalınlığı" xml:space="preserve"><value>Tick width</value></data>
+  <data name="Tick uzunluğu" xml:space="preserve"><value>Tick length</value></data>
+  <data name="Grid" xml:space="preserve"><value>Grid</value></data>
+  <data name="Göster" xml:space="preserve"><value>Show</value></data>
+  <data name="Kalınlık" xml:space="preserve"><value>Width</value></data>
+  <data name="Opaklık" xml:space="preserve"><value>Opacity</value></data>
+  <data name="Çizgi stili" xml:space="preserve"><value>Line style</value></data>
+  <data name="Düz" xml:space="preserve"><value>Solid</value></data>
+  <data name="Kesikli" xml:space="preserve"><value>Dashed</value></data>
+  <data name="Noktalı" xml:space="preserve"><value>Dotted</value></data>
+  <data name="Veri noktaları" xml:space="preserve"><value>Data points</value></data>
+  <data name="Yarıçap" xml:space="preserve"><value>Radius</value></data>
+  <data name="Ağırlık merkezi" xml:space="preserve"><value>Centroid</value></data>
+  <data name="Varsayılanlara dön" xml:space="preserve"><value>Reset to defaults</value></data>
+  <data name="Bölge renkleri ve opaklıkları için diyagramda gruba tıklayın. Çizgi kalınlıkları ekranda piksel, indirilen SVG'de SVG birimidir." xml:space="preserve"><value>For region colours and opacities, click a group on the diagram. Line widths are screen pixels on the page and SVG units in the downloaded file.</value></data>
 </root>

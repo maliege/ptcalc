@@ -25,6 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Testler, yalnız sınanmak için açılan internal üyelere erişir (ör. adım sınırlı iterasyon). -->
+    <InternalsVisibleTo Include="PTCalc.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- WithCulture=false: ".en." eki yoksa dosya uydu derlemeye (en/…) gider ve ana derlemede bulunmaz. -->
     <EmbeddedResource Include="Resources\CoreText.en.tsv" LogicalName="PTCalc.Resources.CoreText.en.tsv" WithCulture="false" />
   </ItemGroup>

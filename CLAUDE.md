@@ -61,7 +61,7 @@ Ayrıntı: `CONTRIBUTING.md`.
 
 - `main`'e push → `.github/workflows/deploy.yml` (test → framework-dependent, `UseAppHost=false`, RID'siz yayın → lftp FTPS).
   Barındırma `.exe` dosyasına izin vermez; yayında `.exe` çıkarsa iş akışı durur. Belge değişiklikleri (`docs/**`, `*.md`,
-  CITATION.cff, .zenodo.json) yayın tetiklemez.
+  CITATION.cff, .zenodo.json, `tools/validation-docs/**`) yayın tetiklemez.
 - Sunucuda kalan dosyalar: `appsettings.Production.json` (yalnız `EmailSettings`), `App_Data/`, `wwwroot/UserFiles/`, `logs/`.
 - Sırlar (`FTP_*`, SMTP parolası) asla depoya, çıktıya ya da sohbete yazılmaz; Plesk/Cloudflare/GitHub ayarlarını depo sahibi yapar.
 

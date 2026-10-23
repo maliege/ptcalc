@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Sistem kitaplığının alkolometri çıktılarını JSON olarak yazar; compare.js referans hesapla karşılaştırır.
+       Çözüme (PTCalc.sln) eklenmez; yalnız validasyon kanıtı üretmek için çalıştırılır. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\PTCalc.Core\PTCalc.Core.csproj" />
+  </ItemGroup>
+</Project>

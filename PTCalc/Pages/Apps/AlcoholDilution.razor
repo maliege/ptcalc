@@ -43,7 +43,7 @@
                         <p class="small text-muted">@L["Elinizdeki stok alkolden istediğiniz derece ve miktarda alkol hazırlamak için gereken stok alkol ve su miktarlarını hesaplar. Karışınca hacim küçüldüğü için su, basit orantının verdiğinden fazladır."]</p>
                         <div class="mb-2">
                             <label class="form-label small mb-0">@L["Derece türü"]</label>
-                            <select class="form-select form-select-sm" @bind="_recipeBasis">
+                            <select class="form-select form-select-sm" @bind="_recipeBasis" @bind:after="ClearRecipe">
                                 <option value="@StrengthBasis.Volume">@L["Hacimce (%v/v, 20 °C) — miktar mL"]</option>
                                 <option value="@StrengthBasis.Mass">@L["Kütlece (%w/w) — miktar g"]</option>
                             </select>
@@ -51,19 +51,19 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Stok alkol derecesi (%)"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_stock" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_stock" @bind:event="oninput" @bind:after="ClearRecipe" />
                             </div>
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Hedef derece (%)"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_target" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_target" @bind:event="oninput" @bind:after="ClearRecipe" />
                             </div>
                             <div class="col-6">
                                 <label class="form-label small mb-0">@(_recipeBasis == StrengthBasis.Volume ? L["Hazırlanacak miktar (mL)"] : L["Hazırlanacak miktar (g)"])</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_amount" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_amount" @bind:event="oninput" @bind:after="ClearRecipe" />
                             </div>
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Hazırlama sıcaklığı (°C)"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_recipeTemp" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_recipeTemp" @bind:event="oninput" @bind:after="ClearRecipe" />
                             </div>
                         </div>
                         <div class="text-end mt-3">
@@ -75,7 +75,7 @@
                         <p class="small text-muted">@L["Bilinen dereceli bir su–etanol karışımının verilen sıcaklıktaki yoğunluğunu ve öbür derece türündeki karşılığını verir (OIML Tablo I–IV)."]</p>
                         <div class="mb-2">
                             <label class="form-label small mb-0">@L["Derece türü"]</label>
-                            <select class="form-select form-select-sm" @bind="_densityBasis">
+                            <select class="form-select form-select-sm" @bind="_densityBasis" @bind:after="ClearDensity">
                                 <option value="@StrengthBasis.Volume">@L["Hacimce (%v/v, 20 °C)"]</option>
                                 <option value="@StrengthBasis.Mass">@L["Kütlece (%w/w)"]</option>
                             </select>
@@ -83,11 +83,11 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Alkol derecesi (%)"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_strength" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_strength" @bind:event="oninput" @bind:after="ClearDensity" />
                             </div>
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Sıcaklık (°C)"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_densityTemp" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_densityTemp" @bind:event="oninput" @bind:after="ClearDensity" />
                             </div>
                         </div>
                         <div class="text-end mt-3">
@@ -100,18 +100,18 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Ölçülen yoğunluk"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_density" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_density" @bind:event="oninput" @bind:after="ClearStrength" />
                             </div>
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Birim"]</label>
-                                <select class="form-select form-select-sm" @bind="_densityUnit">
+                                <select class="form-select form-select-sm" @bind="_densityUnit" @bind:after="ClearStrength">
                                     <option value="@DensityUnit.GramPerMl">g/mL</option>
                                     <option value="@DensityUnit.KgPerM3">kg/m³</option>
                                 </select>
                             </div>
                             <div class="col-6">
                                 <label class="form-label small mb-0">@L["Ölçüm sıcaklığı (°C)"]</label>
-                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_strengthTemp" />
+                                <input class="form-control form-control-sm" inputmode="decimal" @bind="_strengthTemp" @bind:event="oninput" @bind:after="ClearStrength" />
                             </div>
                         </div>
                         <div class="text-end mt-3">
@@ -261,6 +261,12 @@
         _tab = tab;
         _error = null;
     }
+
+    // Girdi değişince o sekmenin sonucu kaldırılır: ekranda hiçbir zaman güncel girdilere ait olmayan bir
+    // sonuç kalmaz (URS-ALC-INP-08). Metin alanları her tuşta (oninput), seçimler değişimde tetiklenir.
+    private void ClearRecipe() => _recipe = null;
+    private void ClearDensity() => _densityResult = null;
+    private void ClearStrength() => _strengthResult = null;
 
     private void ComputeRecipe()
     {

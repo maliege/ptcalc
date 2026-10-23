@@ -125,20 +125,24 @@ public static class OimlAlcoholometry
     /// <summary>
     /// Hacimce dereceden kütlece orana (OIML Tablo IVb). w = φ·ρ_E(20)/ρ(w, 20) sabit nokta iterasyonuyla
     /// çözülür; başlangıç w₀ = φ. |g′(w)| = w·|dρ/dw|/ρ aralık boyunca 0,4'ün altında kaldığından (en büyük değer w → 1'de ≈ 0,399)
-    /// yöntem her adımda hatayı en az yarıya indirir ve her zaman yakınsar.
+    /// yöntem her adımda hatayı en az yarıya indirir ve her zaman yakınsar (%0–100 aralığında en çok 24 adım).
+    /// Adım sınırına yine de ulaşılırsa yakınsamamış bir değer döndürülmez, hata fırlatılır.
     /// </summary>
-    public static double VolumeToMassPercent(double volumePercent)
+    public static double VolumeToMassPercent(double volumePercent) => VolumeToMassPercent(volumePercent, MaxIterations);
+
+    /// <summary>Adım sınırı verilebilen sürüm; sınır yalnız testlerde değiştirilir.</summary>
+    internal static double VolumeToMassPercent(double volumePercent, int maxIterations)
     {
         CheckPercent(volumePercent);
         double phi = volumePercent / 100.0;
         double w = phi;
-        for (int n = 0; n < MaxIterations; n++)
+        for (int n = 0; n < maxIterations; n++)
         {
             double next = phi * EthanolDensity20 / Formula(w, ReferenceTemperature);
             if (Math.Abs(next - w) < Tolerance) return next * 100.0;
             w = next;
         }
-        return w * 100.0;
+        throw new InvalidOperationException(CoreText.T("Hacimce dereceden kütlece orana dönüşüm {0} adımda yakınsamadı.", maxIterations));
     }
 
     /// <summary>

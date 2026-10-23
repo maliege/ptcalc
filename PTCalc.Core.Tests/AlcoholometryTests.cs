@@ -1,5 +1,6 @@
 using System.Text.Json;
 using PTCalc.Core.Alcoholometry;
+using Xunit.Abstractions;
 
 namespace PTCalc.Core.Tests;
 
@@ -8,9 +9,10 @@ namespace PTCalc.Core.Tests;
 /// Tablo karşılaştırması oiml_r22_reference.json'daki basılı değerlerle (2 ondalık) yapılır; dosya
 /// tools/make_oiml_reference.py ile tablo PDF'inden üretilir ve OCR hataları hesaplama kodu
 /// kullanılmadan, tablonun iç tutarlılığıyla ayıklanır. Hesaplanan değer 2 ondalığa yuvarlanınca
-/// basılı değerle aynı olmalıdır; yuvarlama sınırındaki (…5) hücreler için 0,01 pay bırakılır.
+/// basılı değerle aynı olmalıdır; 0,01 pay yalnız yuvarlama sınırındaki hücrelere (yuvarlanmamış
+/// değerin üçüncü ondalığı 4 ya da 5) tanınır.
 /// </summary>
-public class AlcoholometryTests
+public class AlcoholometryTests(ITestOutputHelper output)
 {
     private static readonly JsonElement Tables =
         JsonDocument.Parse(File.ReadAllText("oiml_r22_reference.json")).RootElement.GetProperty("tables");
@@ -38,14 +40,33 @@ public class AlcoholometryTests
         Assert.True(rows.Count > 500, $"Tablo {table} için referans hücresi az: {rows.Count}");
 
         var failures = new List<string>();
+        int boundaryCells = 0;
         foreach (var row in rows)
         {
             double x = row[0].GetDouble(), t = row[1].GetDouble(), printed = row[2].GetDouble();
-            double computed = Math.Round(Compute(table, x, t), 2, MidpointRounding.AwayFromZero);
-            if (Math.Abs(computed - printed) > 0.01 + 1e-9)
-                failures.Add($"x={x}, t={t}: tablo {printed}, hesap {computed}");
+            double raw = Compute(table, x, t);
+            double computed = Math.Round(raw, 2, MidpointRounding.AwayFromZero);
+            double diff = Math.Abs(computed - printed);
+            if (diff < 1e-9) continue;
+            if (diff <= 0.01 + 1e-9 && NearRoundingBoundary(raw))
+            {
+                boundaryCells++;
+                continue;
+            }
+            failures.Add($"x={x}, t={t}: tablo {printed}, hesap {raw:F4}");
         }
+        output.WriteLine($"Tablo {table}: {rows.Count} hücre, 0,01 payı kullanılan (yuvarlama sınırında) {boundaryCells}.");
         Assert.True(failures.Count == 0, $"Tablo {table}: {failures.Count} hücre uyuşmuyor. " + string.Join("; ", failures.Take(10)));
+    }
+
+    /// <summary>
+    /// Yuvarlanmamış değerin üçüncü ondalığı 4 ya da 5: basılı tablonun hesabındaki küçük farklar (formülün
+    /// tablo basımında kullanılan sürümü, ara yuvarlamalar) 2 ondalıklı sonucu bir birim değiştirebilir.
+    /// </summary>
+    private static bool NearRoundingBoundary(double value)
+    {
+        double scaled = Math.Abs(value) * 100;
+        return Math.Abs(scaled - Math.Floor(scaled) - 0.5) < 0.1;
     }
 
     [Fact]
@@ -67,6 +88,28 @@ public class AlcoholometryTests
     {
         double w = OimlAlcoholometry.VolumeToMassPercent(volumePercent);
         Assert.Equal(volumePercent, OimlAlcoholometry.MassToVolumePercent(w), 9);
+    }
+
+    /// <summary>
+    /// Sabit nokta iterasyonu tüm aralıkta (0,01 adım) yakınsar. Daralma katsayısı en çok ≈ 0,399
+    /// olduğundan kuramsal üst sınır yaklaşık 31 adımdır; ölçülen en çok 24 adım.
+    /// </summary>
+    [Fact]
+    public void Volume_to_mass_iteration_converges_within_the_theoretical_bound()
+    {
+        for (int i = 0; i <= 10000; i++)
+        {
+            double q = i / 100.0;
+            double w = OimlAlcoholometry.VolumeToMassPercent(q, maxIterations: 31);
+            Assert.Equal(q, OimlAlcoholometry.MassToVolumePercent(w), 9);
+        }
+    }
+
+    /// <summary>Adım sınırına ulaşan iterasyon yakınsamamış değer döndürmez.</summary>
+    [Fact]
+    public void Volume_to_mass_iteration_throws_instead_of_returning_an_unconverged_value()
+    {
+        Assert.Throws<InvalidOperationException>(() => OimlAlcoholometry.VolumeToMassPercent(96, maxIterations: 2));
     }
 
     [Theory]

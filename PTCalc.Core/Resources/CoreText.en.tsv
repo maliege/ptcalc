@@ -135,3 +135,4 @@ Sıcaklık {0} ile {1} °C arasında olmalıdır (OIML R 22 geçerlilik aralığ
 Hazırlanacak miktar sıfırdan büyük olmalıdır.	The amount to prepare must be greater than zero.
 Stok alkol derecesi 0'dan büyük, en çok 100 olmalıdır.	The stock alcohol strength must be greater than 0 and at most 100.
 Hedef derece 0'dan büyük ve stok dereceden küçük olmalıdır.	The target strength must be greater than 0 and lower than the stock strength.
+Hacimce dereceden kütlece orana dönüşüm {0} adımda yakınsamadı.	The conversion from strength by volume to strength by mass did not converge in {0} steps.

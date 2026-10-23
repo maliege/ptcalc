@@ -1,0 +1,11 @@
+{
+  "name": "ptcalc-validation-docs",
+  "private": true,
+  "description": "PTCalc validasyon belgelerini (PTC-VAL-*) Word olarak üretir",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "docx": "9.5.1"
+  }
+}

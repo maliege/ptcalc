@@ -268,6 +268,38 @@
                 </div>
                 <div class="card-body">
                     @* Yakınlaştırma = görünen bölge (TernaryRange): çerçeve sabit, içerik ve eksen etiketleri değişir. *@
+                    @if (drawMode)
+                    {
+                        @* Tıklayarak ekleme: her tıklama grid'e bir satır yazar; "Bitti" hesaplar. *@
+                        <div class="draw-bar mb-2">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="@L["Eklenecek nesne"]">
+                                    <button type="button" class="btn @(drawTool == DrawTool.Point ? "btn-primary" : "btn-outline-primary")" @onclick="() => SetDrawTool(DrawTool.Point)">
+                                        <i class="bi bi-dot"></i> @L["Yeni nokta"]
+                                    </button>
+                                    <button type="button" class="btn @(drawTool == DrawTool.Line ? "btn-primary" : "btn-outline-primary")" @onclick="() => SetDrawTool(DrawTool.Line)">
+                                        <i class="bi bi-slash-lg"></i> @L["Yeni çizgi"]
+                                    </button>
+                                    <button type="button" class="btn @(drawTool == DrawTool.Polygon ? "btn-primary" : "btn-outline-primary")" @onclick="() => SetDrawTool(DrawTool.Polygon)">
+                                        <i class="bi bi-pentagon"></i> @L["Yeni poligon"]
+                                    </button>
+                                </div>
+                                @if (activeDraft?.Kind == DrawTool.Polygon)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="FinishActiveDraft">
+                                        <i class="bi bi-check2"></i> @L["Poligonu bitir"]
+                                    </button>
+                                }
+                                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="UndoDrawPointAsync" disabled="@(drafts.Count == 0)">
+                                    <i class="bi bi-arrow-counterclockwise"></i> @L["Geri al"]
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success ms-auto" @onclick="ExitDrawModeAsync">
+                                    <i class="bi bi-check2-square"></i> @L["Bitti, hesapla"]
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-1">@DrawHint</small>
+                        </div>
+                    }
                     <div id="@SvgWrapId" class="diagram-wrap @(range.IsFull ? null : "is-zoomed")">
                         @RenderSvgMarkup()
                         <div class="zoom-toolbar btn-group-vertical" role="group" aria-label="@L["Yakınlaştırma"]">
@@ -278,6 +310,9 @@
                             <button type="button" class="btn btn-sm btn-light" title="@L["Tam üçgen"]" aria-label="@L["Tam üçgen"]"
                                     @onclick="ResetRangeAsync" disabled="@range.IsFull"><i class="bi bi-triangle"></i></button>
                         </div>
+                        <button type="button" class="btn btn-sm draw-toggle @(drawMode ? "btn-primary" : "btn-light")"
+                                title="@L["Diyagrama tıklayarak nokta, çizgi ya da poligon ekle"]" aria-pressed="@(drawMode ? "true" : "false")"
+                                @onclick="ToggleDrawModeAsync"><i class="bi bi-pencil-square"></i></button>
                         @* Sayıları JS yazar (imleç altındaki bileşim); Blazor yalnız eksen adlarını çizer. *@
                         <div class="zoom-hint" aria-hidden="true"></div>
                         <div class="zoom-readout" aria-hidden="true">
@@ -330,10 +365,22 @@
                                 </div>
                             </div>
                             <div class="mt-2">
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => ResetStyleAsync(sel)" disabled="@(custom is null)">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => ResetStyleAsync(sel)" disabled="@(custom?.HasStyle != true)">
                                     <i class="bi bi-arrow-counterclockwise"></i> @L["Varsayılana dön"]
                                 </button>
                                 <small class="text-muted ms-2">@L["Stil grup adına bağlıdır; aynı adlı grup sonraki çalışmalarda da bu rengi alır."]</small>
+                            </div>
+                            <div class="row g-2 align-items-center mt-1">
+                                <div class="col-auto"><label class="form-label small mb-0" for="groupCloseType">@L["Kapatma"]</label></div>
+                                <div class="col-auto">
+                                    <select id="groupCloseType" class="form-select form-select-sm" value="@(custom?.CloseType?.ToString() ?? "")"
+                                            @onchange="e => SetGroupCloseTypeAsync(sel, e.Value?.ToString())">
+                                        <option value="">@L["Genel ayar"] (@CloseTypeName(polygonCloseType))</option>
+                                        <option value="0">@CloseTypeName(0)</option>
+                                        <option value="1">@CloseTypeName(1)</option>
+                                        <option value="2">@CloseTypeName(2)</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     }
@@ -524,6 +571,33 @@
             cursor: grabbing;
         }
 
+    /* Tıklayarak ekleme: düğme yakınlaştırma düğmelerinin altında; modda artı imleci */
+    .draw-toggle {
+        position: absolute;
+        top: 104px;
+        right: 10px;
+        border: 1px solid var(--border-color);
+        padding: 0.2rem 0.45rem;
+        box-shadow: var(--shadow-md);
+    }
+
+        .draw-toggle.btn-light {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+    .diagram-svg[data-edit],
+    .diagram-svg[data-edit] .ternary-shape {
+        cursor: crosshair;
+    }
+
+    .draw-bar {
+        border: 1px solid var(--accent-primary);
+        border-radius: 12px;
+        padding: 8px 10px;
+        background: var(--accent-primary-lighter);
+    }
+
     .zoom-hint {
         position: absolute;
         left: 50%;
@@ -667,7 +741,7 @@
     private string titleOil = "Oil";
     private string titleSurfactant = "Surfactant";
     private string titleWater = "Water";
-    private int polygonCloseType = 1;
+    private int polygonCloseType = 0;   // varsayılan: poligonu doğrudan kapat (kullanıcı değiştirebilir)
     private int edgeType = 2;
     private int axisInterval = 10;
 
@@ -832,8 +906,192 @@
 
     private async Task ResetStyleAsync(int groupNum)
     {
-        groupStyles.Remove(GroupNameOf(groupNum));
+        // Yalnız görünüş sıfırlanır; grubun kapatma ayarı kalır
+        var name = GroupNameOf(groupNum);
+        if (groupStyles.TryGetValue(name, out var st) && st.CloseType is int ct)
+            groupStyles[name] = new GroupStyle { CloseType = ct };
+        else
+            groupStyles.Remove(name);
         await AutosaveAsync();
+    }
+
+    private string CloseTypeName(int closeType) => closeType switch
+    {
+        0 => T("Poligonu Kapat"),
+        1 => T("Min Değer Kapatma"),
+        _ => T("Kenar Kapatma")
+    };
+
+    private async Task SetGroupCloseTypeAsync(int groupNum, string? value)
+    {
+        int? ct = int.TryParse(value, out var v) && v is >= 0 and <= 2 ? v : null;
+        await UpdateStyleAsync(groupNum, st => st.CloseType = ct);
+        RecalculatePolygons();
+    }
+
+    // ================= Tıklayarak ekleme =================
+
+    private enum DrawTool { Point, Line, Polygon }
+
+    /// <summary>Mod açıkken eklenen grup: taslak olarak çizilir, satırları grid'de.</summary>
+    private sealed class DraftGroup(string name, DrawTool kind)
+    {
+        public string Name { get; } = name;
+        public DrawTool Kind { get; } = kind;
+        public List<(PointD P, int Row)> Points { get; } = new();
+        /// <summary>Kapatma ayarını bu mod yazdıysa (geri alınınca silinir).</summary>
+        public bool OwnsCloseType { get; set; }
+    }
+
+    private bool drawMode;
+    private DrawTool drawTool = DrawTool.Point;
+    private readonly List<DraftGroup> drafts = new();
+    private DraftGroup? activeDraft;            // bitmemiş çizgi ya da poligon
+    private int nextGridRow;                    // sıradaki boş grid satırı
+    private int gridRowCount;
+    private readonly HashSet<string> usedGroupNames = new(StringComparer.OrdinalIgnoreCase);
+    private const string DraftColor = "#f97316";
+
+    private string DrawHint => drawTool switch
+    {
+        DrawTool.Point => T("Her tıklama yeni bir tek noktalı grup ekler."),
+        DrawTool.Line => T("İki tıklama bir çizgi (iki noktalı grup) ekler."),
+        _ => activeDraft is null
+            ? T("Köşelere sırayla tıklayın; bitirmek için \"Poligonu bitir\" ya da başka bir araç seçin. Poligon çizildiği gibi kapanır.")
+            : T("{0}: {1} köşe. Sıradaki köşeye tıklayın ya da \"Poligonu bitir\".", activeDraft.Name, activeDraft.Points.Count)
+    };
+
+    private async Task ToggleDrawModeAsync()
+    {
+        if (drawMode) { await ExitDrawModeAsync(); return; }
+        if (inputGrid is null) return;
+
+        // Grid'in son dolu satırı ve kullanılan grup adları: bundan sonrası tıklamalarla eklenir
+        var data = await inputGrid.GetDataAsync();
+        int last = -1, count = 0;
+        usedGroupNames.Clear();
+        if (data is JsonElement json && json.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var row in json.EnumerateArray())
+            {
+                if (row.ValueKind == JsonValueKind.Array)
+                {
+                    var cells = row.EnumerateArray().ToList();
+                    bool any = cells.Any(c => c.ValueKind is JsonValueKind.Number
+                                              || (c.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(c.GetString())));
+                    if (any) last = count;
+                    if (cells.Count > 0 && cells[0].ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(cells[0].GetString()))
+                        usedGroupNames.Add(cells[0].GetString()!.Trim());
+                }
+                count++;
+            }
+        }
+        nextGridRow = last + 1;
+        gridRowCount = count;
+        drafts.Clear();
+        activeDraft = null;
+        drawMode = true;
+    }
+
+    private void SetDrawTool(DrawTool tool)
+    {
+        drawTool = tool;
+        activeDraft = null;     // yarım çizgi/poligon olduğu gibi kalır
+    }
+
+    private void FinishActiveDraft() => activeDraft = null;
+
+    private string NextGroupName(DrawTool kind)
+    {
+        for (int n = 1; ; n++)
+        {
+            var name = kind switch
+            {
+                DrawTool.Point => T("Nokta {0}", n),
+                DrawTool.Line => T("Çizgi {0}", n),
+                _ => T("Poligon {0}", n)
+            };
+            if (usedGroupNames.Add(name)) return name;
+        }
+    }
+
+    /// <summary>ternaryView: çizim modunda diyagrama tıklanınca imleç altındaki bileşim (yüzde, görünen bölgeye göre).</summary>
+    [JSInvokable]
+    public async Task AddPointFromView(double oil, double surf, double water)
+    {
+        if (!drawMode || inputGrid is null) return;
+        oil = Math.Round(Math.Clamp(oil, 0, 100), 2);
+        surf = Math.Round(Math.Clamp(surf, 0, 100 - oil), 2);
+        water = Math.Round(100 - oil - surf, 2);
+
+        DraftGroup draft;
+        if (drawTool != DrawTool.Point && activeDraft?.Kind == drawTool)
+            draft = activeDraft;
+        else
+        {
+            draft = new DraftGroup(NextGroupName(drawTool), drawTool);
+            drafts.Add(draft);
+            activeDraft = drawTool == DrawTool.Point ? null : draft;
+            if (drawTool == DrawTool.Polygon)
+            {
+                // Çizilen poligon çizildiği gibi kapanır (genel kapatma ayarından bağımsız)
+                if (!groupStyles.TryGetValue(draft.Name, out var st)) groupStyles[draft.Name] = st = new GroupStyle();
+                if (st.CloseType is null) { st.CloseType = 0; draft.OwnsCloseType = true; }
+            }
+        }
+
+        // Satır, beklemeden ayrılır: ardışık tıklamalar aynı satırı almasın
+        int row = nextGridRow++;
+        draft.Points.Add((new PointD { X = surf / 100 + oil / 200, Y = oil / 100 * Sin60 }, row));
+        if (drawTool == DrawTool.Line && draft.Points.Count >= 2) activeDraft = null;
+        StateHasChanged();
+
+        if (row >= gridRowCount) { await inputGrid.AddRowAsync(); gridRowCount++; }
+        await inputGrid.SetCellsAsync(new[]
+        {
+            new object[] { row, 0, draft.Name },
+            new object[] { row, 1, draft.Points.Count },
+            new object[] { row, 2, oil },
+            new object[] { row, 3, surf },
+            new object[] { row, 4, water }
+        });
+    }
+
+    private async Task UndoDrawPointAsync()
+    {
+        if (inputGrid is null || drafts.Count == 0) return;
+        var draft = drafts[^1];
+        var (_, row) = draft.Points[^1];
+        draft.Points.RemoveAt(draft.Points.Count - 1);
+        if (row == nextGridRow - 1) nextGridRow--;
+
+        if (draft.Points.Count == 0)
+        {
+            drafts.RemoveAt(drafts.Count - 1);
+            usedGroupNames.Remove(draft.Name);
+            if (draft.OwnsCloseType && groupStyles.TryGetValue(draft.Name, out var st))
+            {
+                st.CloseType = null;
+                if (st.IsEmpty) groupStyles.Remove(draft.Name);
+            }
+            activeDraft = null;
+        }
+        else if (draft.Kind != DrawTool.Point)
+        {
+            drawTool = draft.Kind;
+            activeDraft = draft;    // geri alınan çizgi/poligon yeniden açılır
+        }
+
+        await inputGrid.SetCellsAsync(Enumerable.Range(0, 5).Select(c => new object[] { row, c, null! }));
+    }
+
+    private async Task ExitDrawModeAsync()
+    {
+        drawMode = false;
+        activeDraft = null;
+        bool added = drafts.Count > 0;
+        drafts.Clear();
+        if (added) await CalculateDiagram();
     }
 
     // ================= Kalıcılık (A: localStorage, B: dosya) =================
@@ -857,7 +1115,7 @@
     private void ApplySettings(TernarySettings s)
     {
         chartTitle = s.ChartTitle; titleOil = s.TitleOil; titleSurfactant = s.TitleSurfactant; titleWater = s.TitleWater;
-        polygonCloseType = s.PolygonCloseType is >= 0 and <= 2 ? s.PolygonCloseType : 1;
+        polygonCloseType = s.PolygonCloseType is >= 0 and <= 2 ? s.PolygonCloseType : 0;
         edgeType = s.EdgeType is >= 0 and <= 2 ? s.EdgeType : 2;
         axisInterval = s.AxisInterval is 5 or 10 or 20 ? s.AxisInterval : 10;
         borderAlpha = Math.Clamp(s.BorderAlpha, 10, 255);
@@ -1316,6 +1574,7 @@
         <svg id="@SvgElementId" viewBox="0 0 @F(SvgWidth) @F(ViewHeight)" class="@SvgClass"
              style="color-scheme: light dark; aspect-ratio: @F(SvgWidth) / @F(ViewHeight);" font-family="@ap.FontStack"
              data-range="@($"{F(range.OilMin)} {F(range.SurfMin)} {F(range.WaterMin)}")"
+             data-edit="@(drawMode ? drawTool.ToString().ToLowerInvariant() : null)"
              @onclick="ClearSelection">
             @* İçerik üç katmanda: dışta dönüşümsüz kırpma grubu, içte ternary-pan. Tekerlek/sürükleme
                sırasında JS ternary-pan'e önizleme dönüşümü verir (sunucu yeni aralıkla çizene kadar);
@@ -1470,6 +1729,25 @@
             {
                 var (cx, cy) = Map(group.PolygonCenterD!);
                 <circle cx="@F(cx)" cy="@F(cy)" r="@F(ap.CentroidRadius)" fill="@ap.CentroidColor" stroke="white" stroke-width="1.2" />
+            }
+
+            @* Çizim modunda eklenenler (hesaplanana kadar taslak): kesikli turuncu *@
+            @foreach (var d in drafts)
+            {
+                var pts = string.Join(" ", d.Points.Select(q => { var (x, y) = Map(q.P); return $"{F(x)},{F(y)}"; }));
+                if (d.Kind == DrawTool.Polygon && d.Points.Count >= 3 && d != activeDraft)
+                {
+                    <polygon points="@pts" fill="@DraftColor" fill-opacity="0.15" stroke="@DraftColor" stroke-width="1.5" stroke-dasharray="5 3" />
+                }
+                else if (d.Points.Count >= 2)
+                {
+                    <polyline points="@pts" fill="none" stroke="@DraftColor" stroke-width="1.5" stroke-dasharray="5 3" />
+                }
+                foreach (var q in d.Points)
+                {
+                    var (x, y) = Map(q.P);
+                    <circle cx="@F(x)" cy="@F(y)" r="@F(ap.PointRadius)" fill="@DraftColor" stroke="white" stroke-width="1" />
+                }
             }
             </g></g>
 
@@ -1779,10 +2057,12 @@
                 continue;
             }
             PointD? closingStart = null, closingEnd = null, closingLineA = null, closingLineB = null;
-            if (closeType == 0) { }
-            else if (closeType >= 1)
+            groupStyles.TryGetValue(GroupNameOf(groupNum), out var groupStyle);
+            int groupClose = GroupStyle.EffectiveCloseType(groupStyle, closeType);
+            if (groupClose == 0) { }
+            else
             {
-                var closingPoints = CalculateClosingPoints(groupData, closeType, edge);
+                var closingPoints = CalculateClosingPoints(groupData, groupClose, edge);
                 if (closingPoints.start != null && closingPoints.end != null)
                 {
                     polygon.Insert(0, closingPoints.start);

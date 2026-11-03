@@ -75,7 +75,8 @@ public sealed class TernarySettings
     public string TitleOil { get; set; } = "Oil";
     public string TitleSurfactant { get; set; } = "Surfactant";
     public string TitleWater { get; set; } = "Water";
-    public int PolygonCloseType { get; set; } = 1;
+    /// <summary>0 poligonu doğrudan kapat (varsayılan), 1 min değer, 2 kenar.</summary>
+    public int PolygonCloseType { get; set; } = 0;
     public int EdgeType { get; set; } = 2;
     public int AxisInterval { get; set; } = 10;
     public int BorderAlpha { get; set; } = 180;
@@ -230,8 +231,21 @@ public sealed class GroupStyle
     public int? StrokeAlpha { get; set; }
     public double? StrokeWidth { get; set; }
 
+    /// <summary>
+    /// Bu grubun kapatma tipi (0 poligonu kapat, 1 min değer, 2 kenar); null → Grafik sekmesindeki genel ayar.
+    /// Diyagrama tıklayarak çizilen poligonlar 0 alır: çizildiği gibi kapanır, kenara kapatma noktası eklenmez.
+    /// </summary>
+    public int? CloseType { get; set; }
+
     [JsonIgnore]
-    public bool IsEmpty => Fill is null && Stroke is null && FillAlpha is null && StrokeAlpha is null && StrokeWidth is null;
+    public bool HasStyle => Fill is not null || Stroke is not null || FillAlpha is not null || StrokeAlpha is not null || StrokeWidth is not null;
+
+    [JsonIgnore]
+    public bool IsEmpty => !HasStyle && CloseType is null;
+
+    /// <summary>Geçerli grup kapatma tipi; geçersiz ya da yoksa genel ayar.</summary>
+    public static int EffectiveCloseType(GroupStyle? style, int globalCloseType)
+        => style?.CloseType is int c and >= 0 and <= 2 ? c : globalCloseType;
 }
 
 /// <summary>Çizimde kullanılan, tüm alanları çözülmüş stil.</summary>

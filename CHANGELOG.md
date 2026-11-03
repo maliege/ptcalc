@@ -11,6 +11,14 @@ Work in progress lives on the `dev` branch; `main` is what runs on https://ptcal
 
 ### Added
 
+- **Phase diagram: adding data by clicking on the diagram.** A drawing mode (pencil button) with "New point",
+  "New line" and "New polygon" tools writes the composition at each click to the grid as a new row, in groups
+  named "Point 1", "Line 1", "Polygon 1"; additions are shown as a dashed preview, "Undo" removes the last
+  point and "Done, calculate" leaves the mode and calculates. Clicks map through the visible region, so points
+  can be placed precisely while zoomed.
+- **Phase diagram: per-group closing type.** Each group can override the general closing setting (close polygon,
+  minimum-value closing, edge closing) from the group panel; drawn polygons are closed as drawn. Stored with the
+  group style (`GroupStyle.CloseType`); "Reset to default" in the panel resets the style but keeps the closing.
 - **Pseudo-ternary phase diagram: visible region (partial ternary diagram).** A lower limit can be set for each
   component (Oil ≥ o₀, Surfactant ≥ s₀, Water ≥ w₀). The region is an equilateral triangle of side
   100 − (o₀ + s₀ + w₀) facing the same way as the full triangle; the frame stays fixed, the region is enlarged to
@@ -42,6 +50,9 @@ Work in progress lives on the `dev` branch; `main` is what runs on https://ptcal
 
 ### Changed
 
+- Phase diagram: the default closing is now "Close Polygon" (the outline is closed directly between the last and
+  the first point); minimum-value and edge closing remain available on the Chart tab and per group. Work saved
+  earlier keeps the closing it was saved with.
 - Phase diagram: the chart grows with the column width and fits the window height instead of a fixed 450 px;
   tick labels and axis titles are larger; the gradient fill is computed for the visible region.
 - Phase diagram: line widths are screen pixels and no longer grow with the chart (on a full-HD screen the axes

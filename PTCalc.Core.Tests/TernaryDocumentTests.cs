@@ -81,6 +81,21 @@ public class TernaryDocumentTests
     }
 
     [Fact]
+    public void Group_close_type_overrides_global_setting_and_round_trips()
+    {
+        var doc = new TernaryDocument { Styles = { ["Poligon 1"] = new GroupStyle { CloseType = 0 } } };
+        var back = TernaryDocument.FromJson(doc.ToJson())!;
+        var style = back.Styles["poligon 1"];
+
+        Assert.Equal(0, style.CloseType);
+        Assert.False(style.HasStyle);                                    // renk/opaklık yok, yalnız kapatma
+        Assert.False(style.IsEmpty);                                     // ama silinmemeli
+        Assert.Equal(0, GroupStyle.EffectiveCloseType(style, 1));
+        Assert.Equal(1, GroupStyle.EffectiveCloseType(null, 1));          // ayar yok → genel
+        Assert.Equal(2, GroupStyle.EffectiveCloseType(new GroupStyle { CloseType = 7 }, 2));   // geçersiz → genel
+    }
+
+    [Fact]
     public void Appearance_round_trips_and_older_documents_get_defaults()
     {
         var doc = new TernaryDocument();
@@ -100,6 +115,8 @@ public class TernaryDocumentTests
 
         var old = TernaryDocument.FromJson("""{ "version": 1, "rows": [], "settings": { "chartTitle": "Eski" } }""");
         Assert.Equal(new TernaryAppearance(), old!.Settings.Appearance);
+        Assert.Equal(0, old.Settings.PolygonCloseType);                  // varsayılan: doğrudan kapat
+        Assert.Equal(0, new TernarySettings().PolygonCloseType);
     }
 
     [Fact]

@@ -486,7 +486,7 @@
   <data name="Görünüm" xml:space="preserve"><value>Appearance</value></data>
   <data name="Genel" xml:space="preserve"><value>General</value></data>
   <data name="Yazı tipi" xml:space="preserve"><value>Font</value></data>
-  <data name="Sistem yazı tipi" xml:space="preserve"><value>System font</value></data>
+  <data name="Sistem" xml:space="preserve"><value>System</value></data>
   <data name="Zemin" xml:space="preserve"><value>Background</value></data>
   <data name="Sayfa teması" xml:space="preserve"><value>Page theme</value></data>
   <data name="Beyaz" xml:space="preserve"><value>White</value></data>
@@ -516,4 +516,21 @@
   <data name="Ağırlık merkezi" xml:space="preserve"><value>Centroid</value></data>
   <data name="Varsayılanlara dön" xml:space="preserve"><value>Reset to defaults</value></data>
   <data name="Bölge renkleri ve opaklıkları için diyagramda gruba tıklayın. Çizgi kalınlıkları ekranda piksel, indirilen SVG'de SVG birimidir." xml:space="preserve"><value>For region colours and opacities, click a group on the diagram. Line widths are screen pixels on the page and SVG units in the downloaded file.</value></data>
+  <data name="Eklenecek nesne" xml:space="preserve"><value>Object to add</value></data>
+  <data name="Yeni nokta" xml:space="preserve"><value>New point</value></data>
+  <data name="Yeni çizgi" xml:space="preserve"><value>New line</value></data>
+  <data name="Yeni poligon" xml:space="preserve"><value>New polygon</value></data>
+  <data name="Poligonu bitir" xml:space="preserve"><value>Finish polygon</value></data>
+  <data name="Geri al" xml:space="preserve"><value>Undo</value></data>
+  <data name="Bitti, hesapla" xml:space="preserve"><value>Done, calculate</value></data>
+  <data name="Diyagrama tıklayarak nokta, çizgi ya da poligon ekle" xml:space="preserve"><value>Add points, lines or polygons by clicking on the diagram</value></data>
+  <data name="Kapatma" xml:space="preserve"><value>Closing</value></data>
+  <data name="Genel ayar" xml:space="preserve"><value>General setting</value></data>
+  <data name="Her tıklama yeni bir tek noktalı grup ekler." xml:space="preserve"><value>Each click adds a new single-point group.</value></data>
+  <data name="İki tıklama bir çizgi (iki noktalı grup) ekler." xml:space="preserve"><value>Two clicks add a line (a two-point group).</value></data>
+  <data name="Köşelere sırayla tıklayın; bitirmek için &quot;Poligonu bitir&quot; ya da başka bir araç seçin. Poligon çizildiği gibi kapanır." xml:space="preserve"><value>Click the corners in order; to finish, press "Finish polygon" or choose another tool. The polygon is closed as drawn.</value></data>
+  <data name="{0}: {1} köşe. Sıradaki köşeye tıklayın ya da &quot;Poligonu bitir&quot;." xml:space="preserve"><value>{0}: {1} corners. Click the next corner or press "Finish polygon".</value></data>
+  <data name="Nokta {0}" xml:space="preserve"><value>Point {0}</value></data>
+  <data name="Çizgi {0}" xml:space="preserve"><value>Line {0}</value></data>
+  <data name="Poligon {0}" xml:space="preserve"><value>Polygon {0}</value></data>
 </root>

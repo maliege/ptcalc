@@ -14,7 +14,7 @@
                         @onchange="e => SetAsync(a => a with { FontFamily = e.Value?.ToString() ?? string.Empty })">
                     @foreach (var f in TernaryAppearance.Fonts.Keys)
                     {
-                        <option value="@f">@(f == "sans-serif" ? L["Sistem yazı tipi"] : f)</option>
+                        <option value="@f">@(f == "sans-serif" ? L["Sistem"] : f)</option>
                     }
                 </select>
             </td>
@@ -109,9 +109,17 @@
             background: transparent;
         }
 
+        /* Seçim kutuları dar sütunda (lg'de sol panel ~320 px) seçenekleri kesmesin: küçük iç boşluk ve ok */
+        .prop-grid .form-select-sm {
+            font-size: 0.8rem;
+            padding: 0.2rem 1.4rem 0.2rem 0.4rem;
+            background-position: right 0.3rem center;
+            background-size: 12px 9px;
+        }
+
         .prop-grid th[scope=row] {
             font-weight: 400;
-            width: 50%;
+            width: 36%;
             color: var(--text-secondary, var(--text-primary));
         }
 

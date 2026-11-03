@@ -308,11 +308,26 @@ window.ternaryView = {
 
         // Sürükleme sonundaki tıklama seçimi değiştirmesin. Yakalama aşamasında durdurulan olay
         // Blazor'un document üzerindeki dinleyicisine ulaşmaz.
+        // Çizim modunda (data-edit) tıklama grup seçmez: imleç altındaki bileşim sunucuya gider,
+        // sunucu grid'e satır yazar. Üçgen dışındaki tıklamalar yok sayılır.
         svg.addEventListener('click', function (e) {
-            if (!suppressClick) return;
-            suppressClick = false;
+            if (suppressClick) {
+                suppressClick = false;
+                e.stopPropagation();
+                e.preventDefault();
+                return;
+            }
+            if (!svg.getAttribute('data-edit')) return;
             e.stopPropagation();
             e.preventDefault();
+            const p = toSvg(e.clientX, e.clientY);
+            if (!p) return;
+            const f = frameComp(p);
+            if (f[0] < -0.002 || f[1] < -0.002 || f[2] < -0.002) return;
+            const side = sideOf(target);
+            const c = f.map(function (x, i) { return target[i] + side * Math.max(0, x); });
+            dotnet.invokeMethodAsync('AddPointFromView', c[0], c[1], c[2])
+                .catch(function () { /* bağlantı koptuysa tıklama kaybolur */ });
         }, true);
     }
 };

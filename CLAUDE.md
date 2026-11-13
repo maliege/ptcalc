@@ -73,3 +73,35 @@ etiketi ve GitHub Release atılır; Zenodo release'i arşivler.
 Kullanıcıya görünen her değişiklik `CHANGELOG.md`'nin `[Unreleased]` bölümüne İngilizce eklenir (Keep a Changelog:
 Added / Changed / Fixed / Removed). Sürümde bu bölüm `## [X.Y.Z] - tarih` + Zenodo sürüm DOI'si olur, alttaki karşılaştırma
 bağlantıları güncellenir.
+
+## Durum, kararlar ve yol haritası (2026-11-13)
+
+**Durum**
+- Sürüm 1.1.0 (Zenodo concept DOI 10.5281/zenodo.22894811). `main` = `dev` = 836b743, site canlı; `[Unreleased]`
+  bölümünde üçgen diyagram (görünen bölge, tıklayarak veri ekleme, grup başına kapatma, görünüş listesi), kalibrasyon
+  artık grafiği ve alkol seyreltme düzeltmeleri bekliyor.
+- **JOSS reddedildi** (openjournals/joss-reviews#11434, 2026-11-10, track AEiC): depo 6 aydan kısa süredir açık
+  (ilk commit 2026-09-19) ve ortak geliştirme pratiği kanıtı yok. Bot kontrolleri (bölümler, MIT lisansı, DOI'ler) geçti;
+  makale `paper/` içinde hazır (1630 sözcük). Yeniden gönderim teşvik edildi.
+- Alkol seyreltme validasyon dosyası `docs/validation/alcohol-dilution/` (Word, PTC-VAL-ALC-00…07 taslak rev 00);
+  üretici `tools/validation-docs/`. KI-01…03 kodda kapandı (12954ec).
+
+**Alınan kararlar**
+- Çalışma `dev`'de, yayın yalnız istenince `main`'e birleştirme; Release/etiket yalnız sürüm istenince.
+- Makalede ve sitede DDSolver "compared with"; üstünlük iddiası yok. AI kullanımı makalede beyan edilir.
+- Etki bölümü 2001 kinetik bildirisi (Sci Pharm 69 Suppl. 1, S127–S128; 6 atıf) ve 2004 üçgen posterine
+  (Acta Pharm Turc 46 Suppl., 36; 7 yayın) dayanır.
+- Validasyon belgeleri yalnız Word üretilir; PDF'i kullanıcı yapar. İmzalarda yalnız rol, depoda isim yok.
+
+**Açık işler**
+- Validasyon: kod eksikleri E-1, E-2, E-4, E-5, E-7, E-9; belgeler 08–12; PQ laboratuvarda (yoğunluk ölçer).
+- `[Unreleased]` değişiklikleri için 1.2.0 sürümü (CITATION.cff, csproj Version, Release, Zenodo DOI).
+- Araştırma etkisi kanıtı: laboratuvar deneyleri (tablet çözünme kinetiği + emülsiyon üçgen faz diyagramı).
+
+**Sıradaki adımlar**
+1. Mart 2027'ye kadar düzenli, küçük commit'lerle açıkta geliştirme (tek seferde yığılmış commit'ten kaçın).
+2. Ortak geliştirme kanıtı: GitHub Issues ile iş takibi, PR üzerinden değişiklik, dış katkıcı/kullanıcı geri bildirimi
+   (tartışma grubu duyurusu yapıldı/yapılacak), CONTRIBUTING'e "good first issue" önerileri.
+3. Zamanında sürümler (1.2.0, …) ve CHANGELOG.
+4. JOSS'a yeniden gönderim en erken ~25 Mart 2027 (gönderimi kullanıcı yapar; reddedilen kayda atıfla).
+   Alternatif/sonraki: alan dergisi (AAPS PharmSciTech, SoftwareX) DDSolver karşılaştırması + kendi deney verisiyle.

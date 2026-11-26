@@ -55,7 +55,8 @@ test suite. `main` is what the live site runs, and every push to it redeploys pt
 therefore reach `main` only by merging `dev` when they are ready to publish. To contribute, branch from `dev`, keep
 one topic per pull request, add or update tests, run `dotnet test`, note user-visible changes under
 `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md), fill the PR template, and target `dev`. Reference the issue in
-the description (`Closes #12`) so it closes when the pull request is merged. CI must pass before a merge.
+the description (`Closes #12`); because `dev` is not the default branch GitHub does not close it automatically,
+so the maintainer closes the issue on merge. CI must pass before a merge.
 Release tags and GitHub Releases, which Zenodo archives, are cut by the maintainer.
 
 **Wording.** Relationships with other software are described as comparisons ("compared with DDSolver"), never
@@ -245,7 +246,8 @@ ulaşmaz). Kaynaklar DOI ile verilir; başka yazılımlarla ilişki "ile karşı
 Planlanan işler [GitHub Issues](https://github.com/maliege/ptcalc/issues) üzerinde tutulur; depo sahibinin kendi
 değişiklikleri de issue ve pull request üzerinden ilerler. Bir işe başlamadan önce ilgili issue'ya yorum yazın
 (yoksa açın). Akış: `dev`'den konu dalı → değişiklik + test → `dev`'e pull request (açıklamada `Closes #N`) →
-CI geçince birleştirme.
+CI geçince birleştirme. `dev` varsayılan dal olmadığı için GitHub issue'yu kendiliğinden kapatmaz; birleştirmede
+depo sahibi kapatır.
 
 İlk katkı için [`good first issue`](https://github.com/maliege/ptcalc/labels/good%20first%20issue) etiketli
 işler küçük ve kendi içinde kapalıdır, farmasötik teknoloji bilgisi gerektirmez;

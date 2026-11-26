@@ -10,6 +10,25 @@ table is fine), the settings, what you got and what you expected, and a referenc
 (DDSolver, R, SciPy, a textbook example). Method proposals use the feature-request template and should cite the
 method's source, preferably with a DOI.
 
+**How work is tracked.** Planned work lives in [GitHub Issues](https://github.com/maliege/ptcalc/issues); the
+maintainer's own changes go through issues and pull requests too, so the history of a decision can be read in one
+place. Before starting on something, comment on its issue (or open one) so that two people do not do the same
+work. Questions about a method or a result are welcome as issues with the `question` label.
+
+**Good first issues.** Issues labelled
+[`good first issue`](https://github.com/maliege/ptcalc/labels/good%20first%20issue) are small, self-contained and
+need no pharmaceutical background; [`help wanted`](https://github.com/maliege/ptcalc/labels/help%20wanted) marks
+work where an independent hand matters (for example reference values calculated by someone other than the author).
+Typical starting points:
+
+- **A test for an untested class.** Pick a class in `PTCalc.Core` without a dedicated test file and add a
+  known-input → known-output case.
+- **A reference case.** Run a data set through DDSolver, R or SciPy and add it as a fixture
+  (`ddsolver_reference_cases.json`, `tools/make_stats_reference.py`).
+- **A translation fix.** Correct or improve an English string in `SharedResource.en.resx` or `CoreText.en.tsv`,
+  or the Turkish key it belongs to.
+- **A guide correction.** A wrong DOI, an unclear sentence or a missing limitation in a guide page.
+
 **Set up.** .NET 10 SDK is the only requirement.
 
 ```bash
@@ -35,7 +54,9 @@ to any branch other than `main` runs CI only: the build on Ubuntu and Windows wi
 test suite. `main` is what the live site runs, and every push to it redeploys ptcalc.net and ptcalc.tr; changes
 therefore reach `main` only by merging `dev` when they are ready to publish. To contribute, branch from `dev`, keep
 one topic per pull request, add or update tests, run `dotnet test`, note user-visible changes under
-`[Unreleased]` in [CHANGELOG.md](CHANGELOG.md), fill the PR template, and target `dev`.
+`[Unreleased]` in [CHANGELOG.md](CHANGELOG.md), fill the PR template, and target `dev`. Reference the issue in
+the description (`Closes #12`); because `dev` is not the default branch GitHub does not close it automatically,
+so the maintainer closes the issue on merge. CI must pass before a merge.
 Release tags and GitHub Releases, which Zenodo archives, are cut by the maintainer.
 
 **Wording.** Relationships with other software are described as comparisons ("compared with DDSolver"), never
@@ -70,12 +91,13 @@ PTCalc.sln
 │   └── Helpers/NumericCellParser   → Hücre metninden sayı (virgül/nokta, boşluk, birim)
 │
 ├── PTCalc/  (Web)            → Blazor Server host
-│   ├── Pages/Apps/                 → Araç sayfaları (Kinetik, F1F2, TTest, LDCalc, TernaryPhaseDiagramApp)
+│   ├── Pages/Apps/                 → Araç sayfaları (Kinetik, F1F2, TTest, Anova, Regression, Calibration, LDCalc,
+│   │                                 TernaryPhaseDiagramApp, AlcoholDilution)
 │   ├── Pages/AboutApps/            → Rehber sayfaları (TR gövde + @if (Lang.IsEn) { <…GuideEn/> })
 │   ├── Components/Guides/          → Hızlı rehberler ve İngilizce uzun rehberler
 │   ├── Components/UI/              → HandsontableGrid, ModalComponent, ToastComponent, ThemeToggle, SiteTitle
 │   ├── Localization/               → Lang.IsEn, HostRequestCultureProvider (alan adı → varsayılan dil)
-│   ├── Site/SiteProfile.cs         → ptcalc.tr / .com, eski spps.* yönlendirmesi, canonical/hreflang
+│   ├── Site/SiteProfile.cs         → ptcalc.tr / ptcalc.net, eski spps.* yönlendirmesi, canonical/hreflang
 │   ├── Middleware/                 → BrandRedirectMiddleware
 │   ├── Services/                   → IEmailService, SmtpEmailService, EmailOptions (iletişim formu)
 │   ├── Resources/SharedResource.en.resx → Arayüz metinlerinin İngilizcesi (anahtar = Türkçe metin)
@@ -216,6 +238,23 @@ Rehberler `Pages/AboutApps/<Araç>About.razor` (Türkçe gövde, sürüm notu) v
 (İngilizce) çiftidir; stil paylaşımlı `wwwroot/css/rehber.css`'tedir (Razor kapsamlı CSS alt bileşenlere
 ulaşmaz). Kaynaklar DOI ile verilir; başka yazılımlarla ilişki "ile karşılaştırıldı" diye anlatılır,
 üstünlük iddiası yazılmaz.
+
+---
+
+## İş takibi ve katkı
+
+Planlanan işler [GitHub Issues](https://github.com/maliege/ptcalc/issues) üzerinde tutulur; depo sahibinin kendi
+değişiklikleri de issue ve pull request üzerinden ilerler. Bir işe başlamadan önce ilgili issue'ya yorum yazın
+(yoksa açın). Akış: `dev`'den konu dalı → değişiklik + test → `dev`'e pull request (açıklamada `Closes #N`) →
+CI geçince birleştirme. `dev` varsayılan dal olmadığı için GitHub issue'yu kendiliğinden kapatmaz; birleştirmede
+depo sahibi kapatır.
+
+İlk katkı için [`good first issue`](https://github.com/maliege/ptcalc/labels/good%20first%20issue) etiketli
+işler küçük ve kendi içinde kapalıdır, farmasötik teknoloji bilgisi gerektirmez;
+[`help wanted`](https://github.com/maliege/ptcalc/labels/help%20wanted) bağımsız bir elin önemli olduğu işleri
+gösterir (örneğin yazardan başka birinin hesapladığı referans değerler). Tipik başlangıçlar: testi olmayan bir
+`PTCalc.Core` sınıfına sabit örnekli test, DDSolver/R/SciPy ile üretilmiş yeni bir referans vakası, İngilizce
+çeviri düzeltmesi, rehber sayfasında kaynak ya da anlatım düzeltmesi.
 
 ---
 

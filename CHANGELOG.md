@@ -11,6 +11,8 @@ Work in progress lives on the `dev` branch; `main` is what runs on https://ptcal
 
 ## [1.2.0] - 2026-11-26
 
+Zenodo: [10.5281/zenodo.24558765](https://doi.org/10.5281/zenodo.24558765)
+
 ### Added
 
 - **Phase diagram: adding data by clicking on the diagram.** A drawing mode (pencil button) with "New point",

@@ -77,9 +77,9 @@ bağlantıları güncellenir.
 ## Durum, kararlar ve yol haritası (2026-11-13)
 
 **Durum**
-- Sürüm 1.1.0 (Zenodo concept DOI 10.5281/zenodo.22894811). `main` = `dev` = 836b743, site canlı; `[Unreleased]`
-  bölümünde üçgen diyagram (görünen bölge, tıklayarak veri ekleme, grup başına kapatma, görünüş listesi), kalibrasyon
-  artık grafiği ve alkol seyreltme düzeltmeleri bekliyor.
+- Sürüm 1.2.0 (2026-11-26; sürüm DOI 10.5281/zenodo.24558765, concept DOI 10.5281/zenodo.22894811), site canlı;
+  `[Unreleased]` boş. İş takibi GitHub Issues'ta, değişiklikler `dev`'e PR ile (ilk PR'lar #18, #19); `dev`'e giden
+  PR'da `Closes #N` issue'yu kendiliğinden kapatmaz, elle kapatılır.
 - **JOSS reddedildi** (openjournals/joss-reviews#11434, 2026-11-10, track AEiC): depo 6 aydan kısa süredir açık
   (ilk commit 2026-09-19) ve ortak geliştirme pratiği kanıtı yok. Bot kontrolleri (bölümler, MIT lisansı, DOI'ler) geçti;
   makale `paper/` içinde hazır (1630 sözcük). Yeniden gönderim teşvik edildi.
@@ -95,7 +95,7 @@ bağlantıları güncellenir.
 
 **Açık işler**
 - Validasyon: kod eksikleri E-1, E-2, E-4, E-5, E-7, E-9; belgeler 08–12; PQ laboratuvarda (yoğunluk ölçer).
-- `[Unreleased]` değişiklikleri için 1.2.0 sürümü (CITATION.cff, csproj Version, Release, Zenodo DOI).
+- Good first issue'lar: #13 (çeviri anahtarı testi), #14 (kullanılmayan resx girdileri), #15 ve #16 (birim testleri).
 - Araştırma etkisi kanıtı: laboratuvar deneyleri (tablet çözünme kinetiği + emülsiyon üçgen faz diyagramı).
 
 **Sıradaki adımlar**

@@ -9,6 +9,8 @@ Work in progress lives on the `dev` branch; `main` is what runs on https://ptcal
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-26
+
 ### Added
 
 - **Phase diagram: adding data by clicking on the diagram.** A drawing mode (pencil button) with "New point",
@@ -126,6 +128,7 @@ Pharmaceutical Technology, Faculty of Pharmacy, Ege University since 1995 (see t
   tool with DOI-referenced sources, and an offline page for the installable web app.
 - MIT licence, `CITATION.cff`, `.zenodo.json` and `THIRD-PARTY-NOTICES.md`.
 
-[Unreleased]: https://github.com/maliege/ptcalc/compare/v1.1.0...dev
+[Unreleased]: https://github.com/maliege/ptcalc/compare/v1.2.0...dev
+[1.2.0]: https://github.com/maliege/ptcalc/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/maliege/ptcalc/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/maliege/ptcalc/releases/tag/v1.0.0

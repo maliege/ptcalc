@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 
     <!-- Paket/atıf üst verisi: CITATION.cff ile aynı sürüm; her yayın etiketinde birlikte güncellenir -->
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Mehmet Ali Ege</Authors>
     <Company>PTCalc</Company>
     <Product>PTCalc Core</Product>

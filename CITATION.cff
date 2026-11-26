@@ -24,7 +24,7 @@ authors:
 repository-code: "https://github.com/maliege/ptcalc"
 url: "https://ptcalc.net"
 license: MIT
-version: 1.1.0
+version: 1.2.0
 doi: 10.5281/zenodo.22894811
 identifiers:
   - type: doi
@@ -36,7 +36,7 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22957458
     description: "Version 1.1.0"
-date-released: 2026-09-25
+date-released: 2026-11-26
 keywords:
   - dissolution kinetics
   - drug release modelling
